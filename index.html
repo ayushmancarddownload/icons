@@ -13,17 +13,18 @@
             background-size: cover;
             background-position: center;
         }
-        .hover-zoom-out:hover {
+        .hover-zoom-in:hover {
             transform: scale(1.05);
             transition: transform 0.3s ease-in-out;
         }
         iframe {
-            width: 80%; /* Full width */
-            height: 450px; /* Fixed height */
-            border: none; /* No border */
-            border-radius: 8px; /* Rounded corners */
-            transition: all 0.3s ease-in-out; /* Smooth transition */
-            text-align: center;
+            width: 80%;
+            height: 450px;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+            display: block;
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -35,20 +36,20 @@
         <!-- Navbar -->
         <nav class="bg-gray-800 bg-opacity-80 p-4">
             <div class="container mx-auto flex justify-between items-center">
-                <a href="#" class="text-xl font-bold hover-zoom-out">GameZone</a>
+                <a href="#" class="text-xl font-bold hover-zoom-in">GameZone</a>
                 <button id="menu-btn" class="md:hidden px-2 py-1 border rounded">☰</button>
                 <ul id="menu" class="hidden md:flex space-x-4">
-                    <li><a href="#" class="px-3 py-2 rounded transition duration-300 hover:bg-blue-500">Home</a></li>
-                    <li><a href="#" class="px-3 py-2 rounded transition duration-300 hover:bg-blue-500">Games</a></li>
-                    <li><a href="#" class="px-3 py-2 rounded transition duration-300 hover:bg-blue-500">Contact</a></li>
+                    <li><a href="#" class="px-3 py-2 rounded transition duration-300 hover:bg-white hover:text-gray-800">Home</a></li>
+                    <li><a href="#" class="px-3 py-2 rounded transition duration-300 hover:bg-white hover:text-gray-800">Games</a></li>
+                    <li><a href="#" class="px-3 py-2 rounded transition duration-300 hover:bg-white hover:text-gray-800">Contact</a></li>
                 </ul>
             </div>
         </nav>
 
         <!-- Game Iframe -->
-        <div class="container mx-auto p-4">
-            <div class="relative">
-                <iframe id="game-frame" src="https://htmlxm.github.io/h3/tag/"></iframe>
+        <div class="container mx-auto p-4 flex flex-col items-center">
+            <div class="relative w-full max-w-4xl">
+                <iframe id="game-frame" src="https://example.com"></iframe>
                 <button id="fullscreen-btn" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded block mx-auto hover:bg-blue-600">
                     Fullscreen
                 </button>
@@ -68,7 +69,7 @@
             <h3 class="text-xl font-bold mb-4">More Games</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 <!-- Repeat this block for 20 games -->
-                <div class="bg-gray-700 p-2 rounded hover:bg-gray-600 transition duration-300 hover-zoom-out">
+                <div class="bg-gray-700 p-2 rounded hover:bg-gray-600 transition duration-300 hover-zoom-in">
                     <a href="#">
                         <img src="https://via.placeholder.com/150" alt="Game" class="w-full rounded">
                         <p class="text-center mt-2">Game Name</p>
