@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Poster Studio Pro | responsive Creative Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Playfair+Display:wght@700&family=Bebas+Neue&family=Pacifico&family=Noto+Sans+Devanagari:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #020617; 
+            color: #f8fafc;
+            user-select: none;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Pinterest Style Gallery Responsive */
+        .masonry-grid {
+            columns: 2;
+            column-gap: 12px;
+            padding: 12px;
+        }
+        @media (min-width: 640px) { .masonry-grid { columns: 3; } }
+        @media (min-width: 1024px) { .masonry-grid { columns: 4; } }
+        @media (min-width: 1280px) { .masonry-grid { columns: 5; } }
+
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 12px;
+            opacity: 0; 
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+        /* Shapes */
+        .shape-hexagon { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .shape-squircle { border-radius: 25%; }
+
+        /* Draggable Text Styling */
+        .draggable-element {
+            cursor: move;
+            position: absolute;
+            touch-action: none;
+            padding: 6px 12px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            max-width: 85%;
+            z-index: 50;
+            line-height: 1.2;
+            pointer-events: auto;
+        }
+        .draggable-element.selected {
+            border: 2px dashed #6366f1;
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
+
+        #msgBox {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: none;
+        }
+
+        /* Fixed width for editor area but height is dynamic to original image ratio */
+        #captureArea {
+            width: 360px;
+            margin: 0 auto;
+        }
+        @media (max-width: 380px) {
+            #captureArea {
+                width: 300px;
+            }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+
+    <!-- Notification Toast -->
+    <div id="msgBox" class="bg-white text-slate-900 px-6 py-2.5 rounded-full shadow-2xl font-bold text-xs animate-fade-in flex items-center gap-2 border border-indigo-100">
+        <i class="fas fa-check-circle text-indigo-500"></i>
+        <span id="msgContent"></span>
+    </div>
+
+    <!-- Gallery Navigation -->
+    <nav id="galleryNav" class="bg-slate-900 border-b border-white/5 px-4 h-16 flex items-center justify-between shrink-0 z-40">
+        <div class="flex items-center gap-2">
+            <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center">
+                <i class="fas fa-bolt text-white text-sm"></i>
+            </div>
+            <h1 class="font-extrabold text-white uppercase text-xs sm:text-sm tracking-tighter">Poster Studio <span class="text-indigo-400">Pro</span></h1>
+        </div>
+        <button onclick="toggleSetupModal(true)" class="flex items-center gap-2 bg-white/5 p-1 pr-3 rounded-full border border-white/5 hover:bg-white/10 transition">
+            <img id="navPic" src="" class="w-8 h-8 rounded-full object-cover bg-slate-800">
+            <span id="navNameDisplay" class="text-[10px] font-bold uppercase text-white/70 hidden xs:block">User</span>
+        </button>
+    </nav>
+
+    <!-- Main Feed -->
+    <main id="gallerySection" class="flex-1 overflow-y-auto bg-slate-950">
+        <div id="masonryContainer" class="masonry-grid max-w-7xl mx-auto"></div>
+        <div id="loader" class="flex flex-col items-center py-20">
+            <div class="w-10 h-10 border-4 border-white/5 border-t-indigo-500 rounded-full animate-spin"></div>
+        </div>
+    </main>
+
+    <!-- Editor UI -->
+    <div id="editorModal" class="fixed inset-0 z-[60] bg-slate-950 flex flex-col hidden overflow-hidden">
+        <!-- Top Controls -->
+        <header class="h-16 border-b border-white/5 flex items-center justify-between px-4 bg-slate-900/90 backdrop-blur-md shrink-0">
+            <button onclick="closeEditor()" class="text-white/40 hover:text-white p-2 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="sharePoster()" class="bg-white/5 hover:bg-white/10 text-white p-2 px-3 rounded-xl border border-white/5 text-[10px] font-bold flex items-center gap-2 transition uppercase">
+                    <i class="fas fa-share-nodes"></i> <span class="hidden xs:block">Share</span>
+                </button>
+                <div class="h-6 w-px bg-white/10 mx-0.5"></div>
+                <button onclick="downloadPoster(2)" class="bg-slate-800 hover:bg-slate-700 text-white p-2 px-3 rounded-xl text-[10px] font-bold flex items-center gap-2 transition">
+                    <i class="fas fa-download"></i> SD
+                </button>
+                <button onclick="downloadPoster(5)" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 px-4 rounded-xl text-[10px] font-bold flex items-center gap-2 transition shadow-lg shadow-indigo-600/20">
+                    <i class="fas fa-crown"></i> HD PRO
+                </button>
+            </div>
+        </header>
+
+        <!-- Editor Canvas -->
+        <div id="canvasViewport" class="flex-1 relative flex flex-col items-center justify-start sm:justify-center p-4 overflow-y-auto bg-slate-950" onclick="deselectAll()">
+            <div id="captureArea" class="flex flex-col bg-white shadow-[0_30px_80px_rgba(0,0,0,0.8)] shrink-0" onclick="event.stopPropagation()">
+                
+                <!-- THE IMAGE PART (Removed Rounding and Fixed Aspect) -->
+                <div id="imagePart" class="relative w-full bg-slate-200 overflow-hidden shrink-0">
+                    <img id="canvasMainImage" src="" class="w-full h-auto block pointer-events-none" crossorigin="anonymous">
+                    <div id="dragContainer" class="absolute inset-0 z-20"></div>
+                </div>
+                
+                <!-- THE BRAND CARD PART (Ensure no cutting) -->
+                <div id="canvasProfileOverlay" class="relative z-30 p-5 flex flex-row items-center bg-slate-900 border-t border-white/10 w-full">
+                    <div id="canvasAvatarContainer" class="relative shrink-0">
+                        <img id="canvasAvatar" src="" class="w-12 h-12 object-cover border-2 border-white/10 shadow-xl rounded-full bg-slate-800">
+                    </div>
+                    <div id="canvasInfoText" class="flex-1 ml-4 min-w-0">
+                        <h4 id="canvasName" class="text-white font-bold text-sm leading-tight break-words"></h4>
+                        <p id="canvasBio" class="text-white/40 text-[9px] uppercase tracking-widest font-semibold mt-0.5 break-words"></p>
+                    </div>
+                    <div class="text-right shrink-0 ml-2 opacity-20">
+                        <span id="domainTag" class="text-[9px] text-white font-black italic tracking-tighter uppercase">PRO STUDIO</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tool Selection Panels -->
+        <div id="activeToolPanel" class="bg-slate-900 border-t border-white/10 animate-slide-up p-4 hidden shrink-0 pb-8 z-50">
+            <!-- Text Panel -->
+            <div id="panelText" class="tool-panel hidden space-y-4">
+                <div class="flex gap-2">
+                    <input type="text" id="textInput" placeholder="Write something..." class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-indigo-500 text-sm">
+                    <button onclick="addNewText()" class="bg-indigo-600 text-white px-6 rounded-2xl font-bold text-sm">Add</button>
+                </div>
+                <div id="textEditPanel" class="hidden flex flex-wrap gap-3 items-center bg-white/5 p-3 rounded-2xl border border-white/10">
+                    <select id="fontSelect" onchange="updateTextStyling()" class="bg-slate-950 text-white text-[10px] p-2 rounded-xl outline-none font-bold uppercase flex-1 min-w-[100px]">
+                        <option value="'Outfit', sans-serif">Modern</option>
+                        <option value="'Noto Sans Devanagari', sans-serif">Hindi</option>
+                        <option value="'Playfair Display', serif">Serif</option>
+                        <option value="'Pacifico', cursive">Script</option>
+                    </select>
+                    <div class="flex-1 min-w-[120px] flex items-center gap-2">
+                        <i class="fas fa-text-height text-[10px] text-white/30"></i>
+                        <input type="range" id="sizeRange" min="12" max="150" value="28" oninput="updateTextStyling()" class="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    </div>
+                    <input type="color" id="colorPicker" oninput="updateTextStyling()" class="w-8 h-8 rounded-lg border-none bg-transparent cursor-pointer">
+                    <button onclick="deleteSelectedText()" class="text-rose-500 p-2"><i class="fas fa-trash-alt text-sm"></i></button>
+                </div>
+            </div>
+
+            <!-- Alignment Panel -->
+            <div id="panelLayout" class="tool-panel hidden flex justify-around p-2">
+                <button onclick="setTheme('left')" class="flex flex-col items-center gap-2 text-white/40 hover:text-white transition group">
+                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-indigo-500 transition-all"><i class="fas fa-align-left text-xl"></i></div>
+                    <span class="text-[9px] font-bold uppercase">Left</span>
+                </button>
+                <button onclick="setTheme('center')" class="flex flex-col items-center gap-2 text-white/40 hover:text-white transition group">
+                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-indigo-500 transition-all"><i class="fas fa-align-center text-xl"></i></div>
+                    <span class="text-[9px] font-bold uppercase">Center</span>
+                </button>
+                <button onclick="setTheme('right')" class="flex flex-col items-center gap-2 text-white/40 hover:text-white transition group">
+                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-indigo-500 transition-all"><i class="fas fa-align-right text-xl"></i></div>
+                    <span class="text-[9px] font-bold uppercase">Right</span>
+                </button>
+            </div>
+
+            <!-- Brand Styling -->
+            <div id="panelStyles" class="tool-panel hidden space-y-4">
+                <div id="bgSelectors" class="flex gap-4 overflow-x-auto whitespace-nowrap custom-scroll py-2 px-2"></div>
+            </div>
+
+            <!-- Avatar Shapes -->
+            <div id="panelAvatar" class="tool-panel hidden flex justify-around p-2 gap-4">
+                <button onclick="setShape('rounded-full')" class="w-10 h-10 rounded-full border-2 border-white/20 bg-slate-800"></button>
+                <button onclick="setShape('rounded-2xl')" class="w-10 h-10 rounded-2xl border-2 border-white/20 bg-slate-800"></button>
+                <button onclick="setShape('shape-squircle')" class="w-10 h-10 shape-squircle border-2 border-white/20 bg-slate-800"></button>
+                <button onclick="setShape('shape-hexagon')" class="w-10 h-10 shape-hexagon border-2 border-white/20 bg-slate-800"></button>
+            </div>
+        </div>
+
+        <!-- Bottom Tab Navigation -->
+        <nav class="h-20 bg-slate-900 border-t border-white/5 flex items-center justify-around shrink-0 px-2 pb-4">
+            <button onclick="showPanel('Text')" class="tool-btn flex flex-col items-center gap-1.5 text-white/30 transition-all">
+                <i class="fas fa-font text-lg"></i><span class="text-[9px] uppercase font-black">Content</span>
+            </button>
+            <button onclick="showPanel('Layout')" class="tool-btn flex flex-col items-center gap-1.5 text-white/30 transition-all">
+                <i class="fas fa-layer-group text-lg"></i><span class="text-[9px] uppercase font-black">Layout</span>
+            </button>
+            <button onclick="showPanel('Avatar')" class="tool-btn flex flex-col items-center gap-1.5 text-white/30 transition-all">
+                <i class="fas fa-circle-user text-lg"></i><span class="text-[9px] uppercase font-black">Avatar</span>
+            </button>
+            <button onclick="showPanel('Styles')" class="tool-btn flex flex-col items-center gap-1.5 text-white/30 transition-all">
+                <i class="fas fa-palette text-lg"></i><span class="text-[9px] uppercase font-black">Style</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- User Setup Onboarding -->
+    <div id="setupModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl hidden">
+        <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full mx-4 shadow-2xl animate-fade-in text-slate-900">
+            <div class="mb-6 text-center">
+                <h2 class="text-2xl font-black tracking-tighter uppercase">My Brand Card</h2>
+                <p class="text-slate-500 text-xs mt-1">Ye aapke poster ke niche juda rahega</p>
+            </div>
+            
+            <div class="space-y-4 mb-8">
+                <div class="relative w-24 h-24 mx-auto mb-6">
+                    <img id="setupPreview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full rounded-[2rem] object-cover border-4 border-slate-100 bg-slate-50">
+                    <label class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-2xl cursor-pointer shadow-xl border-4 border-white transition hover:scale-110">
+                        <i class="fas fa-camera text-[10px]"></i>
+                        <input type="file" id="setupFile" class="hidden" accept="image/*">
+                    </label>
+                </div>
+                <div class="space-y-3">
+                    <input type="text" id="setupName" placeholder="Brand or Full Name" class="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold">
+                    <input type="text" id="setupBio" placeholder="Designation / Tagline" class="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-bold">
+                </div>
+            </div>
+            
+            <button onclick="saveInitialSetup()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-2xl shadow-indigo-500/40 hover:bg-indigo-700 transition-all active:scale-95">TAIYAR HAI</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = { name: "Creator", bio: "Signature Tagline", pic: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" };
+        let selectedElement = null;
+
+        const premiumGradients = [
+            { name: "Night", style: "#0f172a" },
+            { name: "Slate", style: "#1e293b" },
+            { name: "Indigo", style: "linear-gradient(45deg, #1e1b4b, #312e81)" },
+            { name: "Purple", style: "linear-gradient(45deg, #2e1065, #4c1d95)" },
+            { name: "Crimson", style: "#881337" },
+            { name: "Abyss", style: "#000000" }
+        ];
+
+        const assets = [
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600",
+            "https://images.unsplash.com/photo-1529139513402-e209979821ed?q=80&w=600",
+            "https://images.unsplash.com/photo-1539109132314-34a77ad70327?q=80&w=600",
+            "https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=600",
+            "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600",
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600"
+        ];
+
+        window.onload = () => {
+            loadUser();
+            initGallery();
+            initTools();
+        };
+
+        function showMessage(text) {
+            const box = document.getElementById('msgBox');
+            document.getElementById('msgContent').innerText = text;
+            box.style.display = 'flex';
+            setTimeout(() => { box.style.display = 'none'; }, 2500);
+        }
+
+        function loadUser() {
+            const saved = localStorage.getItem('ps_user_v12');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                updateUI();
+            } else {
+                toggleSetupModal(true);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('navPic').src = currentUser.pic;
+            document.getElementById('navNameDisplay').innerText = currentUser.name.split(' ')[0];
+            document.getElementById('canvasName').innerText = currentUser.name;
+            document.getElementById('canvasBio').innerText = currentUser.bio;
+            document.getElementById('canvasAvatar').src = currentUser.pic;
+            document.getElementById('domainTag').innerText = window.location.hostname.split('.')[0].toUpperCase() || 'PRO STUDIO';
+        }
+
+        function toggleSetupModal(show) {
+            document.getElementById('setupModal').classList.toggle('hidden', !show);
+            if(show) {
+                document.getElementById('setupName').value = currentUser.name;
+                document.getElementById('setupBio').value = currentUser.bio;
+                document.getElementById('setupPreview').src = currentUser.pic;
+            }
+        }
+
+        document.getElementById('setupFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('setupPreview').src = ev.target.result;
+                    currentUser.pic = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function saveInitialSetup() {
+            const name = document.getElementById('setupName').value.trim();
+            if (!name) return showMessage("Naam bhariye!");
+            currentUser.name = name;
+            currentUser.bio = document.getElementById('setupBio').value.trim();
+            localStorage.setItem('ps_user_v12', JSON.stringify(currentUser));
+            updateUI();
+            toggleSetupModal(false);
+            showMessage("Branding Updated!");
+        }
+
+        function initGallery() {
+            const container = document.getElementById('masonryContainer');
+            container.innerHTML = '';
+            assets.forEach((url, index) => {
+                const div = document.createElement('div');
+                div.className = 'masonry-item animate-fade-in';
+                div.style.animationDelay = `${index * 80}ms`;
+                div.innerHTML = `
+                    <div class="relative group cursor-pointer overflow-hidden rounded-3xl bg-slate-900 border border-white/5" onclick="openEditor('${url}')">
+                        <img src="${url}" class="w-full h-auto object-cover opacity-90 transition-all duration-700">
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            document.getElementById('loader').classList.add('hidden');
+        }
+
+        function initTools() {
+            const container = document.getElementById('bgSelectors');
+            premiumGradients.forEach(grad => {
+                const btn = document.createElement('button');
+                btn.className = 'w-10 h-10 rounded-xl border-2 border-white/10 shrink-0 hover:scale-110 transition shadow-lg';
+                btn.style.background = grad.style;
+                btn.onclick = () => document.getElementById('canvasProfileOverlay').style.background = grad.style;
+                container.appendChild(btn);
+            });
+        }
+
+        function openEditor(imgUrl) {
+            document.getElementById('canvasMainImage').src = imgUrl;
+            document.getElementById('editorModal').classList.remove('hidden');
+            document.getElementById('dragContainer').innerHTML = '';
+            showPanel('Text');
+            deselectAll();
+            setTheme('left'); 
+        }
+
+        function closeEditor() {
+            document.getElementById('editorModal').classList.add('hidden');
+        }
+
+        function showPanel(panelName) {
+            document.getElementById('activeToolPanel').classList.remove('hidden');
+            document.querySelectorAll('.tool-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById('panel' + panelName).classList.remove('hidden');
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.replace('text-white', 'text-white/30'));
+            const activeBtn = Array.from(document.querySelectorAll('.tool-btn')).find(b => b.innerText.includes(panelName.toUpperCase()));
+            if(activeBtn) activeBtn.classList.replace('text-white/30', 'text-white');
+        }
+
+        function setTheme(align) {
+            const overlay = document.getElementById('canvasProfileOverlay');
+            overlay.className = "relative z-30 p-5 flex border-t border-white/10 transition-all duration-500 w-full";
+            overlay.style.alignItems = "center";
+            overlay.style.flexDirection = "";
+            overlay.style.textAlign = "";
+            
+            const infoBox = overlay.querySelector('#canvasInfoText');
+            infoBox.classList.remove('ml-4', 'mr-4', 'mt-3');
+            
+            if (align === 'left') {
+                overlay.classList.add('flex-row', 'text-left');
+                infoBox.classList.add('ml-4');
+            } else if (align === 'center') {
+                overlay.classList.add('flex-col', 'text-center');
+                infoBox.classList.add('mt-3');
+            } else if (align === 'right') {
+                overlay.classList.add('flex-row-reverse', 'text-right');
+                infoBox.classList.add('mr-4');
+            }
+        }
+
+        function setShape(shape) {
+            document.getElementById('canvasAvatar').className = `w-12 h-12 object-cover border-2 border-white/20 shadow-lg ${shape} bg-slate-800 transition-all duration-300`;
+        }
+
+        function addNewText() {
+            const val = document.getElementById('textInput').value.trim();
+            if (!val) return;
+            const el = document.createElement('div');
+            el.className = 'draggable-element text-white drop-shadow-2xl font-bold';
+            el.innerText = val;
+            el.style.fontSize = '28px';
+            el.style.top = '25%'; el.style.left = '10%';
+            el.style.fontFamily = "'Outfit', sans-serif";
+            
+            el.addEventListener('mousedown', (e) => { e.stopPropagation(); selectText(el); });
+            el.addEventListener('touchstart', (e) => { e.stopPropagation(); selectText(el); }, {passive: false});
+            makeDraggable(el);
+            document.getElementById('dragContainer').appendChild(el);
+            document.getElementById('textInput').value = '';
+            selectText(el);
+        }
+
+        function selectText(el) {
+            deselectAll();
+            selectedElement = el;
+            el.classList.add('selected');
+            document.getElementById('textEditPanel').classList.remove('hidden');
+            document.getElementById('fontSelect').value = el.style.fontFamily || "'Outfit', sans-serif";
+            document.getElementById('sizeRange').value = parseInt(el.style.fontSize);
+            document.getElementById('colorPicker').value = rgbToHex(el.style.color);
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('.draggable-element').forEach(el => el.classList.remove('selected'));
+            selectedElement = null;
+            document.getElementById('textEditPanel').classList.add('hidden');
+        }
+
+        function updateTextStyling() {
+            if(!selectedElement) return;
+            selectedElement.style.fontFamily = document.getElementById('fontSelect').value;
+            selectedElement.style.fontSize = document.getElementById('sizeRange').value + 'px';
+            selectedElement.style.color = document.getElementById('colorPicker').value;
+        }
+
+        function deleteSelectedText() {
+            if(selectedElement) { selectedElement.remove(); deselectAll(); }
+        }
+
+        function rgbToHex(rgb) {
+            if (!rgb || rgb.startsWith('#')) return rgb || '#ffffff';
+            const parts = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!parts) return '#ffffff';
+            const hex = x => parseInt(x).toString(16).padStart(2, '0');
+            return "#" + hex(parts[1]) + hex(parts[2]) + hex(parts[3]);
+        }
+
+        function makeDraggable(el) {
+            let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
+            el.onmousedown = (e) => { p3 = e.clientX; p4 = e.clientY; document.onmousemove = drag; document.onmouseup = stop; };
+            el.ontouchstart = (e) => { p3 = e.touches[0].clientX; p4 = e.touches[0].clientY; document.ontouchmove = dragT; document.ontouchend = stop; };
+            function drag(e) { p1 = p3 - e.clientX; p2 = p4 - e.clientY; p3 = e.clientX; p4 = e.clientY; el.style.top = (el.offsetTop - p2) + "px"; el.style.left = (el.offsetLeft - p1) + "px"; }
+            function dragT(e) { 
+                if(e.cancelable) e.preventDefault(); 
+                const t = e.touches[0]; 
+                p1 = p3 - t.clientX; p2 = p4 - t.clientY; p3 = t.clientX; p4 = t.clientY; 
+                el.style.top = (el.offsetTop - p2) + "px"; el.style.left = (el.offsetLeft - p1) + "px"; 
+            }
+            function stop() { document.onmousemove = null; document.ontouchmove = null; }
+        }
+
+        /**
+         * UPDATED EXPORT LOGIC: NO MORE CUTTING OR CROPPING
+         */
+        async function downloadPoster(scale) {
+            deselectAll();
+            const btn = event.currentTarget;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
+            btn.disabled = true;
+
+            // Step 1: Prevent mobile scroll issues during capture
+            const oldScrollY = window.scrollY;
+            window.scrollTo(0,0);
+
+            try {
+                const area = document.getElementById('captureArea');
+                const canvas = await html2canvas(area, { 
+                    scale: scale, 
+                    useCORS: true, 
+                    backgroundColor: "#020617",
+                    logging: false,
+                    width: area.offsetWidth,
+                    height: area.offsetHeight
+                });
+                
+                const link = document.createElement('a');
+                link.download = `studio-poster-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+                showMessage("Poster Exported!");
+            } catch(e) { 
+                console.error(e);
+                showMessage("Export Error!"); 
+            } finally { 
+                window.scrollTo(0, oldScrollY);
+                btn.innerHTML = originalHTML; 
+                btn.disabled = false; 
+            }
+        }
+
+        async function sharePoster() {
+            const oldScrollY = window.scrollY;
+            window.scrollTo(0,0);
+            try {
+                const area = document.getElementById('captureArea');
+                const canvas = await html2canvas(area, { 
+                    scale: 2.5, 
+                    useCORS: true,
+                    width: area.offsetWidth,
+                    height: area.offsetHeight
+                });
+                canvas.toBlob(async blob => {
+                    const file = new File([blob], 'poster.png', { type: 'image/png' });
+                    if (navigator.share) await navigator.share({ title: 'My Creation', files: [file] });
+                    else showMessage("Not Supported!");
+                });
+            } catch(e) { showMessage("Share Error!"); }
+            finally { window.scrollTo(0, oldScrollY); }
+        }
+    </script>
+</body>
+</html>
