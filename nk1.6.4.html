@@ -68,6 +68,7 @@
             background: rgba(99, 102, 241, 0.2);
         }
 
+        /* Ambition Style: Animated Background for the Card */
         #canvasProfileOverlay {
             background: linear-gradient(45deg, var(--dynamic-color-1), var(--dynamic-color-2), var(--dynamic-color-1));
             background-size: 400% 400%;
@@ -128,7 +129,6 @@
         <div id="masonryContainer" class="masonry-grid max-w-7xl mx-auto"></div>
         <div id="loader" class="flex flex-col items-center py-20">
             <div class="w-10 h-10 border-4 border-white/5 border-t-indigo-500 rounded-full animate-spin"></div>
-            <p class="text-white/40 text-[10px] font-bold uppercase mt-4 tracking-widest">Randomizing Feed...</p>
         </div>
     </main>
 
@@ -142,14 +142,14 @@
             </button>
             
             <div class="flex items-center gap-2">
-                <button onclick="sharePoster(this)" class="bg-white/5 hover:bg-white/10 text-white p-2 px-3 rounded-xl border border-white/5 text-[10px] font-bold flex items-center gap-2 transition uppercase">
+                <button onclick="sharePoster()" class="bg-white/5 hover:bg-white/10 text-white p-2 px-3 rounded-xl border border-white/5 text-[10px] font-bold flex items-center gap-2 transition uppercase">
                     <i class="fas fa-share-nodes"></i> <span class="hidden xs:block">Share</span>
                 </button>
                 <div class="h-6 w-px bg-white/10 mx-0.5"></div>
-                <button onclick="downloadPoster(this, 2)" class="bg-slate-800 hover:bg-slate-700 text-white p-2 px-3 rounded-xl text-[10px] font-bold flex items-center gap-2 transition">
+                <button onclick="downloadPoster(2)" class="bg-slate-800 hover:bg-slate-700 text-white p-2 px-3 rounded-xl text-[10px] font-bold flex items-center gap-2 transition">
                     <i class="fas fa-download"></i> SD
                 </button>
-                <button onclick="downloadPoster(this, 3)" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 px-4 rounded-xl text-[10px] font-bold flex items-center gap-2 transition shadow-lg shadow-indigo-600/20">
+                <button onclick="downloadPoster(5)" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 px-4 rounded-xl text-[10px] font-bold flex items-center gap-2 transition shadow-lg shadow-indigo-600/20">
                     <i class="fas fa-crown"></i> HD PRO
                 </button>
             </div>
@@ -248,7 +248,6 @@
                 <h2 class="text-2xl font-black tracking-tighter uppercase">My Brand Card</h2>
                 <p class="text-slate-500 text-xs mt-1">Ye aapke poster ke niche juda rahega</p>
             </div>
-            
             <div class="space-y-4 mb-8">
                 <div class="relative w-24 h-24 mx-auto mb-6">
                     <img id="setupPreview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full rounded-[2rem] object-cover border-4 border-slate-100 bg-slate-50">
@@ -267,10 +266,6 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        const JSON_URL = "https://ayushmancarddownload.github.io/icons/images.json"; 
-        
-        let assets = []; 
         let currentUser = { name: "Creator", bio: "Signature Tagline", pic: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" };
         let selectedElement = null;
 
@@ -285,49 +280,24 @@
             { name: "Abyss", style: "#000000" }
         ];
 
+        const assets = [
+            "https://ayushmancarddownload.github.io/icons/img/download.jpg",
+            "https://images.unsplash.com/photo-1529139513402-e209979821ed?q=80&w=600",
+            "https://images.unsplash.com/photo-1539109132314-34a77ad70327?q=80&w=600",
+            "https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=600",
+            "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600",
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600",
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600",
+            "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?q=80&w=600",
+            "https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=600",
+            "https://images.unsplash.com/photo-1523381235312-3a1647fa9917?q=80&w=600"
+        ];
+
         window.onload = () => {
             loadUser();
-            fetchAssets(); 
+            initGallery();
             initTools();
         };
-
-        // Utility function to shuffle array
-        function shuffle(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex != 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-            }
-            return array;
-        }
-
-        async function fetchAssets(retryCount = 0) {
-            const maxRetries = 5;
-            try {
-                if (!JSON_URL || JSON_URL.includes("your_endpoint_here")) {
-                    assets = ["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600"];
-                    initGallery();
-                    return;
-                }
-                const response = await fetch(JSON_URL);
-                if (!response.ok) throw new Error("Network response was not ok");
-                const data = await response.json();
-                let rawAssets = Array.isArray(data) ? data : (data.images || data.assets || []);
-                
-                // --- SHUFFLE LOGIC ---
-                assets = shuffle(rawAssets);
-                
-                initGallery();
-            } catch (error) {
-                if (retryCount < maxRetries) {
-                    setTimeout(() => fetchAssets(retryCount + 1), Math.pow(2, retryCount) * 1000);
-                } else {
-                    showMessage("Failed to load gallery!");
-                    document.getElementById('loader').innerHTML = '<p class="text-rose-500 text-[10px] font-bold uppercase">Load Error</p>';
-                }
-            }
-        }
 
         function showMessage(text) {
             const box = document.getElementById('msgBox');
@@ -387,20 +357,29 @@
             showMessage("Branding Updated!");
         }
 
+        // Shuffle Utility Function (Fisher-Yates Algorithm)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         function initGallery() {
             const container = document.getElementById('masonryContainer');
             container.innerHTML = '';
-            if (assets.length === 0) {
-                document.getElementById('loader').innerHTML = '<p class="text-white/20 text-[10px] uppercase">No images found.</p>';
-                return;
-            }
-            assets.forEach((url, index) => {
+            
+            // Randomly shuffle images on every refresh
+            const shuffledAssets = shuffleArray([...assets]);
+
+            shuffledAssets.forEach((url, index) => {
                 const div = document.createElement('div');
                 div.className = 'masonry-item animate-fade-in';
-                div.style.animationDelay = `${index * 50}ms`; // Slightly faster fade-in
+                div.style.animationDelay = `${index * 80}ms`;
                 div.innerHTML = `
                     <div class="relative group cursor-pointer overflow-hidden rounded-3xl bg-slate-900 border border-white/5 shadow-lg" onclick="openEditor('${url}')">
-                        <img src="${url}" class="w-full h-auto object-cover opacity-90 transition-all duration-700" onerror="this.src='https://via.placeholder.com/400x600?text=Load+Error'">
+                        <img src="${url}" class="w-full h-auto object-cover opacity-90 transition-all duration-700 hover:scale-110">
                     </div>
                 `;
                 container.appendChild(div);
@@ -413,7 +392,11 @@
             premiumGradients.forEach(grad => {
                 const btn = document.createElement('button');
                 btn.className = 'w-10 h-10 rounded-xl border-2 border-white/10 shrink-0 hover:scale-110 transition shadow-lg';
-                btn.style.background = grad.style === 'animated' ? 'linear-gradient(45deg, #6366f1, #a855f7)' : grad.style;
+                if(grad.style === 'animated') {
+                    btn.style.background = 'linear-gradient(45deg, #6366f1, #a855f7)';
+                } else {
+                    btn.style.background = grad.style;
+                }
                 btn.onclick = () => applyBrandTheme(grad);
                 container.appendChild(btn);
             });
@@ -428,6 +411,7 @@
             } else {
                 overlay.style.animation = "none";
                 overlay.style.background = theme.style;
+                overlay.style.backgroundSize = "auto";
             }
             showMessage(`${theme.name} theme applied!`);
         }
@@ -457,7 +441,7 @@
             showPanel('Text');
             deselectAll();
             setTheme('left'); 
-            applyBrandTheme(premiumGradients[0]); 
+            applyBrandTheme(premiumGradients[0]);
         }
 
         function closeEditor() {
@@ -476,11 +460,19 @@
         function setTheme(align) {
             const overlay = document.getElementById('canvasProfileOverlay');
             overlay.classList.remove('flex-row', 'flex-col', 'flex-row-reverse', 'text-left', 'text-center', 'text-right');
+            overlay.style.alignItems = "center";
             const infoBox = overlay.querySelector('#canvasInfoText');
             infoBox.classList.remove('ml-4', 'mr-4', 'mt-3');
-            if (align === 'left') { overlay.classList.add('flex-row', 'text-left'); infoBox.classList.add('ml-4'); }
-            else if (align === 'center') { overlay.classList.add('flex-col', 'text-center'); infoBox.classList.add('mt-3'); }
-            else if (align === 'right') { overlay.classList.add('flex-row-reverse', 'text-right'); infoBox.classList.add('mr-4'); }
+            if (align === 'left') {
+                overlay.classList.add('flex-row', 'text-left');
+                infoBox.classList.add('ml-4');
+            } else if (align === 'center') {
+                overlay.classList.add('flex-col', 'text-center');
+                infoBox.classList.add('mt-3');
+            } else if (align === 'right') {
+                overlay.classList.add('flex-row-reverse', 'text-right');
+                infoBox.classList.add('mr-4');
+            }
         }
 
         function setShape(shape) {
@@ -544,68 +536,66 @@
             el.onmousedown = (e) => { p3 = e.clientX; p4 = e.clientY; document.onmousemove = drag; document.onmouseup = stop; };
             el.ontouchstart = (e) => { p3 = e.touches[0].clientX; p4 = e.touches[0].clientY; document.ontouchmove = dragT; document.ontouchend = stop; };
             function drag(e) { p1 = p3 - e.clientX; p2 = p4 - e.clientY; p3 = e.clientX; p4 = e.clientY; el.style.top = (el.offsetTop - p2) + "px"; el.style.left = (el.offsetLeft - p1) + "px"; }
-            function dragT(e) { if(e.cancelable) e.preventDefault(); const t = e.touches[0]; p1 = p3 - t.clientX; p2 = p4 - t.clientY; p3 = t.clientX; p4 = t.clientY; el.style.top = (el.offsetTop - p2) + "px"; el.style.left = (el.offsetLeft - p1) + "px"; }
+            function dragT(e) { 
+                if(e.cancelable) e.preventDefault(); 
+                const t = e.touches[0]; 
+                p1 = p3 - t.clientX; p2 = p4 - t.clientY; p3 = t.clientX; p4 = t.clientY; 
+                el.style.top = (el.offsetTop - p2) + "px"; el.style.left = (el.offsetLeft - p1) + "px"; 
+            }
             function stop() { document.onmousemove = null; document.ontouchmove = null; }
         }
 
-        async function downloadPoster(btn, scale) {
-            deselectAll();
+        async function downloadPoster(scale) {
+            document.querySelectorAll('.draggable-element').forEach(el => el.classList.remove('selected'));
+            document.getElementById('textEditPanel').classList.add('hidden');
+            selectedElement = null;
+            const btn = event.currentTarget;
             const originalHTML = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
             btn.disabled = true;
-            
-            const oldScrollY = window.scrollY;
             window.scrollTo(0,0);
-            await new Promise(r => setTimeout(r, 400));
-
+            await new Promise(r => setTimeout(r, 300));
             try {
                 const area = document.getElementById('captureArea');
                 const canvas = await html2canvas(area, { 
                     scale: scale, 
                     useCORS: true, 
-                    allowTaint: false,
                     backgroundColor: "#020617",
                     logging: false,
-                    width: area.offsetWidth,
-                    height: area.offsetHeight
+                    width: area.scrollWidth,
+                    height: area.scrollHeight
                 });
-                
                 const link = document.createElement('a');
                 link.download = `poster-${Date.now()}.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
                 showMessage("Poster Saved!");
             } catch(e) { 
-                console.error(e);
-                showMessage("Error! Try SD Version."); 
+                showMessage("Export Error!"); 
             } finally { 
-                window.scrollTo(0, oldScrollY);
                 btn.innerHTML = originalHTML; 
                 btn.disabled = false; 
             }
         }
 
-        async function sharePoster(btn) {
-            deselectAll();
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
-            btn.disabled = true;
-
+        async function sharePoster() {
+            document.querySelectorAll('.draggable-element').forEach(el => el.classList.remove('selected'));
+            window.scrollTo(0,0);
+            await new Promise(r => setTimeout(r, 300));
             try {
                 const area = document.getElementById('captureArea');
-                const canvas = await html2canvas(area, { scale: 2, useCORS: true });
+                const canvas = await html2canvas(area, { 
+                    scale: 2.5, 
+                    useCORS: true,
+                    width: area.scrollWidth,
+                    height: area.scrollHeight
+                });
                 canvas.toBlob(async blob => {
                     const file = new File([blob], 'poster.png', { type: 'image/png' });
                     if (navigator.share) await navigator.share({ title: 'Poster Studio Pro', files: [file] });
-                    else showMessage("Sharing not supported.");
-                    btn.innerHTML = originalHTML;
-                    btn.disabled = false;
+                    else showMessage("Direct share not supported.");
                 });
-            } catch(e) { 
-                showMessage("Share Error!"); 
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-            }
+            } catch(e) { showMessage("Share Error!"); }
         }
     </script>
 </body>
