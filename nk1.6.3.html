@@ -12,7 +12,7 @@
     <style>
         :root {
             --dynamic-color-1: #0f172a;
-            --dynamic-color-2: #1e293b;
+            --dynamic-color-2: #334155;
         }
 
         body {
@@ -22,23 +22,6 @@
             user-select: none;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Animated Background Logic */
-        .animated-bg {
-            position: absolute;
-            inset: 0;
-            z-index: -1;
-            background: linear-gradient(45deg, var(--dynamic-color-1), var(--dynamic-color-2), var(--dynamic-color-1));
-            background-size: 400% 400%;
-            animation: fluidGradient 15s ease infinite;
-            opacity: 0.6;
-        }
-
-        @keyframes fluidGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         /* Pinterest Style Gallery */
@@ -83,10 +66,22 @@
             line-height: 1.2;
             pointer-events: auto;
         }
-        /* Selection border only in UI, not in capture */
         .draggable-element.selected {
             border: 2px dashed #6366f1;
             background: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Ambition Style: Animated Background for the Card */
+        #canvasProfileOverlay {
+            background: linear-gradient(45deg, var(--dynamic-color-1), var(--dynamic-color-2), var(--dynamic-color-1));
+            background-size: 400% 400%;
+            animation: fluidGradient 10s ease infinite;
+        }
+
+        @keyframes fluidGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
@@ -104,7 +99,7 @@
         #captureArea {
             width: 360px;
             margin: 0 auto;
-            background-color: #000; /* Strict base color for export */
+            background-color: #020617; 
         }
         @media (max-width: 380px) {
             #captureArea { width: 300px; }
@@ -114,7 +109,7 @@
 <body class="h-screen flex flex-col">
 
     <div id="msgBox" class="bg-white text-slate-900 px-6 py-2.5 rounded-full shadow-2xl font-bold text-xs animate-fade-in flex items-center gap-2 border border-indigo-100">
-        <i class="fas fa-check-circle text-indigo-500"></i>
+        <i class="fas fa-magic text-indigo-500"></i>
         <span id="msgContent"></span>
     </div>
 
@@ -142,11 +137,11 @@
 
     <!-- Editor UI -->
     <div id="editorModal" class="fixed inset-0 z-[60] bg-slate-950 flex flex-col hidden overflow-hidden">
-        <!-- The Animated Dynamic Background -->
-        <div class="animated-bg"></div>
+        <!-- Static editor workspace background -->
+        <div class="absolute inset-0 bg-slate-950 z-[-1]"></div>
 
         <!-- Top Controls -->
-        <header class="h-16 border-b border-white/5 flex items-center justify-between px-4 bg-slate-900/40 backdrop-blur-xl shrink-0">
+        <header class="h-16 border-b border-white/5 flex items-center justify-between px-4 bg-slate-900/60 backdrop-blur-xl shrink-0">
             <button onclick="closeEditor()" class="text-white/40 hover:text-white p-2 transition-colors">
                 <i class="fas fa-times text-xl"></i>
             </button>
@@ -167,7 +162,7 @@
 
         <!-- Editor Workspace -->
         <div id="canvasViewport" class="flex-1 relative flex flex-col items-center justify-start sm:justify-center p-4 overflow-y-auto" onclick="deselectAll()">
-            <div id="captureArea" class="flex flex-col bg-white shadow-[0_30px_100px_rgba(0,0,0,0.9)] shrink-0" onclick="event.stopPropagation()">
+            <div id="captureArea" class="flex flex-col shadow-[0_30px_100px_rgba(0,0,0,0.9)] shrink-0" onclick="event.stopPropagation()">
                 
                 <!-- THE IMAGE PART (Fixed standard width, flexible height) -->
                 <div id="imagePart" class="relative w-full bg-slate-800 overflow-hidden shrink-0">
@@ -175,16 +170,16 @@
                     <div id="dragContainer" class="absolute inset-0 z-20"></div>
                 </div>
                 
-                <!-- THE BRAND CARD PART (Default dark background for visibility) -->
-                <div id="canvasProfileOverlay" class="relative z-30 p-5 flex flex-row items-center bg-slate-900 border-t border-white/10 w-full transition-all duration-300">
+                <!-- THE BRAND CARD PART (NOW WITH AMBITION ANIMATION) -->
+                <div id="canvasProfileOverlay" class="relative z-30 p-5 flex flex-row items-center border-t border-white/10 w-full">
                     <div id="canvasAvatarContainer" class="relative shrink-0">
-                        <img id="canvasAvatar" src="" class="w-12 h-12 object-cover border-2 border-white/10 shadow-xl rounded-full bg-slate-800">
+                        <img id="canvasAvatar" src="" class="w-12 h-12 object-cover border-2 border-white/20 shadow-xl rounded-full bg-slate-800">
                     </div>
                     <div id="canvasInfoText" class="flex-1 ml-4 min-w-0">
-                        <h4 id="canvasName" class="text-white font-bold text-sm leading-tight break-words"></h4>
-                        <p id="canvasBio" class="text-white/40 text-[9px] uppercase tracking-widest font-semibold mt-0.5 break-words"></p>
+                        <h4 id="canvasName" class="text-white font-bold text-sm leading-tight break-words drop-shadow-md"></h4>
+                        <p id="canvasBio" class="text-white/70 text-[9px] uppercase tracking-widest font-semibold mt-0.5 break-words drop-shadow-sm"></p>
                     </div>
-                    <div class="text-right shrink-0 ml-2 opacity-20">
+                    <div class="text-right shrink-0 ml-2 opacity-30">
                         <span id="domainTag" class="text-[9px] text-white font-black italic tracking-tighter uppercase">PRO STUDIO</span>
                     </div>
                 </div>
@@ -192,11 +187,11 @@
         </div>
 
         <!-- Tool Selection Panels -->
-        <div id="activeToolPanel" class="bg-slate-900/90 backdrop-blur-2xl border-t border-white/10 animate-slide-up p-4 hidden shrink-0 pb-8 z-50">
+        <div id="activeToolPanel" class="bg-slate-900/95 backdrop-blur-2xl border-t border-white/10 animate-slide-up p-4 hidden shrink-0 pb-8 z-50">
             <!-- Text Panel -->
             <div id="panelText" class="tool-panel hidden space-y-4">
                 <div class="flex gap-2">
-                    <input type="text" id="textInput" placeholder="Add text..." class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-indigo-500 text-sm">
+                    <input type="text" id="textInput" placeholder="Naya content..." class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-indigo-500 text-sm">
                     <button onclick="addNewText()" class="bg-indigo-600 text-white px-6 rounded-2xl font-bold text-sm">Add</button>
                 </div>
                 <div id="textEditPanel" class="hidden flex flex-wrap gap-3 items-center bg-white/5 p-3 rounded-2xl border border-white/10">
@@ -217,21 +212,22 @@
             <!-- Alignment Panel -->
             <div id="panelLayout" class="tool-panel hidden flex justify-around p-2">
                 <button onclick="setTheme('left')" class="flex flex-col items-center gap-2 text-white/40 hover:text-white transition group">
-                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-indigo-50 transition-all group-hover:text-slate-900"><i class="fas fa-align-left text-xl"></i></div>
+                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-indigo-50 transition-all"><i class="fas fa-align-left text-xl"></i></div>
                     <span class="text-[9px] font-bold uppercase">Left</span>
                 </button>
                 <button onclick="setTheme('center')" class="flex flex-col items-center gap-2 text-white/40 hover:text-white transition group">
-                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-indigo-50 transition-all group-hover:text-slate-900"><i class="fas fa-align-center text-xl"></i></div>
+                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-indigo-50 transition-all"><i class="fas fa-align-center text-xl"></i></div>
                     <span class="text-[9px] font-bold uppercase">Center</span>
                 </button>
                 <button onclick="setTheme('right')" class="flex flex-col items-center gap-2 text-white/40 hover:text-white transition group">
-                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-indigo-50 transition-all group-hover:text-slate-900"><i class="fas fa-align-right text-xl"></i></div>
+                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-indigo-50 transition-all"><i class="fas fa-align-right text-xl"></i></div>
                     <span class="text-[9px] font-bold uppercase">Right</span>
                 </button>
             </div>
 
             <!-- Brand Styling -->
             <div id="panelStyles" class="tool-panel hidden space-y-4">
+                <label class="text-[10px] font-bold text-white/30 uppercase px-2 block">Choose Card Theme</label>
                 <div id="bgSelectors" class="flex gap-4 overflow-x-auto whitespace-nowrap custom-scroll py-2 px-2"></div>
             </div>
 
@@ -291,13 +287,13 @@
         let selectedElement = null;
 
         const premiumGradients = [
+            { name: "Ambition", style: "animated" }, // Default dynamic
             { name: "Night", style: "#0f172a" },
             { name: "Slate", style: "#1e293b" },
             { name: "Indigo Mesh", style: "linear-gradient(135deg, #1e1b4b, #4338ca)" },
             { name: "Deep Purple", style: "linear-gradient(135deg, #2e1065, #7c3aed)" },
             { name: "Sunset Blur", style: "linear-gradient(135deg, #4c0519, #be123c)" },
             { name: "Emerald Mix", style: "linear-gradient(135deg, #064e3b, #059669)" },
-            { name: "Ocean Deep", style: "linear-gradient(135deg, #0c4a6e, #0ea5e9)" },
             { name: "Abyss", style: "#000000" }
         ];
 
@@ -324,7 +320,7 @@
         }
 
         function loadUser() {
-            const saved = localStorage.getItem('ps_user_v13');
+            const saved = localStorage.getItem('ps_user_v14');
             if (saved) {
                 currentUser = JSON.parse(saved);
                 updateUI();
@@ -368,7 +364,7 @@
             if (!name) return showMessage("Naam bhariye!");
             currentUser.name = name;
             currentUser.bio = document.getElementById('setupBio').value.trim();
-            localStorage.setItem('ps_user_v13', JSON.stringify(currentUser));
+            localStorage.setItem('ps_user_v14', JSON.stringify(currentUser));
             updateUI();
             toggleSetupModal(false);
             showMessage("Branding Updated!");
@@ -396,16 +392,34 @@
             premiumGradients.forEach(grad => {
                 const btn = document.createElement('button');
                 btn.className = 'w-10 h-10 rounded-xl border-2 border-white/10 shrink-0 hover:scale-110 transition shadow-lg';
-                btn.style.background = grad.style;
-                btn.onclick = () => document.getElementById('canvasProfileOverlay').style.background = grad.style;
+                if(grad.style === 'animated') {
+                    btn.style.background = 'linear-gradient(45deg, #6366f1, #a855f7)';
+                } else {
+                    btn.style.background = grad.style;
+                }
+                btn.onclick = () => applyBrandTheme(grad);
                 container.appendChild(btn);
             });
         }
 
+        function applyBrandTheme(theme) {
+            const overlay = document.getElementById('canvasProfileOverlay');
+            if(theme.style === 'animated') {
+                overlay.style.animation = "fluidGradient 10s ease infinite";
+                overlay.style.background = "linear-gradient(45deg, var(--dynamic-color-1), var(--dynamic-color-2), var(--dynamic-color-1))";
+                overlay.style.backgroundSize = "400% 400%";
+            } else {
+                overlay.style.animation = "none";
+                overlay.style.background = theme.style;
+                overlay.style.backgroundSize = "auto";
+            }
+            showMessage(`${theme.name} theme applied!`);
+        }
+
         /**
-         * COLOR SAMPLER FOR ANIMATED BG
+         * COLOR SAMPLER FOR AMBITION STYLE
          */
-        function updateAnimatedBackground(imgUrl) {
+        function updateDynamicColors(imgUrl) {
             const tempImg = new Image();
             tempImg.crossOrigin = "anonymous";
             tempImg.src = imgUrl;
@@ -417,21 +431,23 @@
                 const p1 = ctx.getImageData(0, 0, 1, 1).data;
                 const p2 = ctx.getImageData(9, 9, 1, 1).data;
                 
-                document.documentElement.style.setProperty('--dynamic-color-1', `rgba(${p1[0]}, ${p1[1]}, ${p1[2]}, 0.5)`);
-                document.documentElement.style.setProperty('--dynamic-color-2', `rgba(${p2[0]}, ${p2[1]}, ${p2[2]}, 0.5)`);
+                // Set the dynamic colors globally
+                document.documentElement.style.setProperty('--dynamic-color-1', `rgb(${p1[0]}, ${p1[1]}, ${p1[2]})`);
+                document.documentElement.style.setProperty('--dynamic-color-2', `rgb(${p2[0]}, ${p2[1]}, ${p2[2]})`);
             };
         }
 
         function openEditor(imgUrl) {
             const mainImg = document.getElementById('canvasMainImage');
             mainImg.src = imgUrl;
-            updateAnimatedBackground(imgUrl);
+            updateDynamicColors(imgUrl);
             
             document.getElementById('editorModal').classList.remove('hidden');
             document.getElementById('dragContainer').innerHTML = '';
             showPanel('Text');
             deselectAll();
             setTheme('left'); 
+            applyBrandTheme(premiumGradients[0]); // Reset to default animated theme
         }
 
         function closeEditor() {
@@ -449,10 +465,8 @@
 
         function setTheme(align) {
             const overlay = document.getElementById('canvasProfileOverlay');
-            overlay.className = "relative z-30 p-5 flex border-t border-white/10 transition-all duration-500 w-full";
+            overlay.classList.remove('flex-row', 'flex-col', 'flex-row-reverse', 'text-left', 'text-center', 'text-right');
             overlay.style.alignItems = "center";
-            overlay.style.flexDirection = "";
-            overlay.style.textAlign = "";
             
             const infoBox = overlay.querySelector('#canvasInfoText');
             infoBox.classList.remove('ml-4', 'mr-4', 'mt-3');
@@ -541,22 +555,22 @@
         }
 
         /**
-         * EXPORT LOGIC: STABILIZED
+         * EXPORT LOGIC: NO MORE CUTTING OR BORDER BUG
          */
         async function downloadPoster(scale) {
-            // Step 1: Force UI cleaning
-            deselectAll(); 
+            // Force removal of selected class for clean capture
+            document.querySelectorAll('.draggable-element').forEach(el => el.classList.remove('selected'));
+            document.getElementById('textEditPanel').classList.add('hidden');
+            selectedElement = null;
+
             const btn = event.currentTarget;
             const originalHTML = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
             btn.disabled = true;
 
-            // Step 2: Prevent mobile clipping
             const oldScrollY = window.scrollY;
             window.scrollTo(0,0);
-
-            // Give extra time for borders to disappear
-            await new Promise(r => setTimeout(r, 200));
+            await new Promise(r => setTimeout(r, 300)); // Delay for clean render
 
             try {
                 const area = document.getElementById('captureArea');
@@ -573,7 +587,7 @@
                 link.download = `poster-${Date.now()}.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
-                showMessage("Success! Downloaded.");
+                showMessage("Poster Saved!");
             } catch(e) { 
                 showMessage("Export Error!"); 
             } finally { 
@@ -584,9 +598,9 @@
         }
 
         async function sharePoster() {
-            deselectAll();
+            document.querySelectorAll('.draggable-element').forEach(el => el.classList.remove('selected'));
             window.scrollTo(0,0);
-            await new Promise(r => setTimeout(r, 200));
+            await new Promise(r => setTimeout(r, 300));
 
             try {
                 const area = document.getElementById('captureArea');
@@ -598,8 +612,8 @@
                 });
                 canvas.toBlob(async blob => {
                     const file = new File([blob], 'poster.png', { type: 'image/png' });
-                    if (navigator.share) await navigator.share({ title: 'My Studio Poster', files: [file] });
-                    else showMessage("Direct share not supported!");
+                    if (navigator.share) await navigator.share({ title: 'Poster Studio Pro', files: [file] });
+                    else showMessage("Direct share not supported.");
                 });
             } catch(e) { showMessage("Share Error!"); }
         }
