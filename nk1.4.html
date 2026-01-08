@@ -139,24 +139,25 @@
 
         <!-- Main Workspace (Image Focus) -->
         <div class="flex-1 relative flex flex-col items-center justify-center p-4 overflow-hidden" onclick="deselectAll()">
-            <div id="captureArea" class="flex flex-col w-full max-w-[360px] bg-slate-900 shadow-[0_0_80px_rgba(0,0,0,0.6)] rounded-3xl overflow-hidden ring-1 ring-white/20" onclick="event.stopPropagation()">
-                <!-- Image Container -->
+            <div id="captureArea" class="flex flex-col w-full max-w-[360px] bg-slate-900 shadow-[0_40px_100px_rgba(0,0,0,0.8)] rounded-3xl overflow-hidden ring-1 ring-white/20" onclick="event.stopPropagation()">
+                
+                <!-- 1. The Poster Image Section -->
                 <div class="relative w-full aspect-[4/5] bg-slate-800 overflow-hidden">
                     <img id="canvasMainImage" src="" class="w-full h-full object-cover pointer-events-none" crossorigin="anonymous">
                     <div id="dragContainer" class="absolute inset-0 z-20"></div>
                 </div>
                 
-                <!-- Attached Profile Card (Not Overlay anymore) -->
-                <div id="canvasProfileOverlay" class="relative z-30 p-5 flex bg-slate-900 border-t border-white/5">
-                    <div id="canvasAvatarContainer" class="relative">
+                <!-- 2. The Attached Profile Card (Visual Separation) -->
+                <div id="canvasProfileOverlay" class="relative z-30 p-6 flex flex-row items-center bg-slate-900 border-t border-white/10 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]">
+                    <div id="canvasAvatarContainer" class="relative shrink-0">
                         <img id="canvasAvatar" src="" class="w-12 h-12 object-cover border-2 border-white/20 shadow-lg rounded-full">
                     </div>
-                    <div class="flex-1 pb-1 ml-4">
-                        <h4 id="canvasName" class="text-white font-bold text-sm leading-tight"></h4>
-                        <p id="canvasBio" class="text-white/60 text-[9px] uppercase tracking-wider mt-1"></p>
+                    <div class="flex-1 pb-1 ml-4 min-w-0">
+                        <h4 id="canvasName" class="text-white font-bold text-sm leading-tight truncate"></h4>
+                        <p id="canvasBio" class="text-white/50 text-[9px] uppercase tracking-wider mt-1 truncate"></p>
                     </div>
-                    <div class="text-right pb-1 opacity-30 flex items-center">
-                        <span id="domainTag" class="text-[8px] text-white font-black tracking-widest">STUDIO</span>
+                    <div class="text-right pb-1 opacity-20 shrink-0 ml-2">
+                        <span id="domainTag" class="text-[8px] text-white font-black tracking-widest uppercase">Studio</span>
                     </div>
                 </div>
             </div>
@@ -164,6 +165,7 @@
 
         <!-- Tool Panels -->
         <div id="activeToolPanel" class="bg-slate-800 border-t border-white/10 animate-slide-up p-4 hidden shrink-0">
+            <!-- Text Panel -->
             <div id="panelText" class="tool-panel hidden space-y-4">
                 <div class="flex gap-2">
                     <input type="text" id="textInput" placeholder="Naya text likhein..." class="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-indigo-500 text-sm">
@@ -179,10 +181,11 @@
                     </select>
                     <input type="range" id="sizeRange" min="12" max="100" oninput="updateTextStyling()" class="flex-1 accent-indigo-500">
                     <input type="color" id="colorPicker" oninput="updateTextStyling()" class="w-8 h-8 rounded-full border-none bg-transparent cursor-pointer">
-                    <button onclick="deleteSelectedText()" class="text-rose-500 p-2"><i class="fas fa-trash"></i></button>
+                    <button onclick="deleteSelectedText()" class="text-rose-500 p-2 transition hover:scale-110"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
 
+            <!-- Layout Panel -->
             <div id="panelLayout" class="tool-panel hidden flex justify-around p-2">
                 <button onclick="setTheme('left')" class="flex flex-col items-center gap-2 text-white/40 hover:text-white transition">
                     <i class="fas fa-align-left text-xl"></i><span class="text-[9px] font-bold uppercase">Left</span>
@@ -195,18 +198,21 @@
                 </button>
             </div>
 
+            <!-- Avatar Panel -->
             <div id="panelAvatar" class="tool-panel hidden flex justify-around p-2">
-                <button onclick="setShape('rounded-full')" class="w-10 h-10 rounded-full border-2 border-white/20 hover:border-indigo-500 transition"></button>
-                <button onclick="setShape('rounded-2xl')" class="w-10 h-10 rounded-2xl border-2 border-white/20 hover:border-indigo-500 transition"></button>
-                <button onclick="setShape('shape-squircle')" class="w-10 h-10 shape-squircle border-2 border-white/20 hover:border-indigo-500 transition"></button>
-                <button onclick="setShape('shape-hexagon')" class="w-10 h-10 shape-hexagon border-2 border-white/20 hover:border-indigo-500 transition"></button>
+                <button onclick="setShape('rounded-full')" class="w-10 h-10 rounded-full border-2 border-white/20 hover:border-indigo-500 transition shadow-md"></button>
+                <button onclick="setShape('rounded-2xl')" class="w-10 h-10 rounded-2xl border-2 border-white/20 hover:border-indigo-500 transition shadow-md"></button>
+                <button onclick="setShape('shape-squircle')" class="w-10 h-10 shape-squircle border-2 border-white/20 hover:border-indigo-500 transition shadow-md"></button>
+                <button onclick="setShape('shape-hexagon')" class="w-10 h-10 shape-hexagon border-2 border-white/20 hover:border-indigo-500 transition shadow-md"></button>
             </div>
 
+            <!-- Styles Panel -->
             <div id="panelStyles" class="tool-panel hidden overflow-x-auto whitespace-nowrap custom-scroll py-2">
                 <div id="bgSelectors" class="flex gap-4 px-2"></div>
             </div>
         </div>
 
+        <!-- Bottom Tab Navigation -->
         <nav class="h-20 bg-slate-900 border-t border-white/10 flex items-center justify-around shrink-0 pb-2">
             <button onclick="showPanel('Text')" class="tool-btn flex flex-col items-center gap-1 text-white/40 transition">
                 <i class="fas fa-font text-lg"></i><span class="text-[9px] uppercase font-bold">Text</span>
@@ -228,31 +234,31 @@
         <div class="bg-white rounded-3xl p-8 max-sm w-full mx-4 shadow-2xl animate-fade-in text-center text-slate-900">
             <div class="mb-6">
                 <h2 class="text-2xl font-bold tracking-tight">Setup Profile</h2>
-                <p class="text-slate-500 text-sm">Ye poster ke footer mein dikhega</p>
+                <p class="text-slate-500 text-sm">Ye information poster footer mein juda rahega</p>
             </div>
             <div class="space-y-4 mb-8">
                 <div class="relative w-24 h-24 mx-auto mb-4">
                     <img id="setupPreview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full rounded-full object-cover border-4 border-indigo-100 bg-slate-50">
-                    <label class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full cursor-pointer shadow-lg border-2 border-white"><i class="fas fa-camera text-[10px]"></i><input type="file" id="setupFile" class="hidden" accept="image/*"></label>
+                    <label class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full cursor-pointer shadow-lg border-2 border-white transition hover:scale-110"><i class="fas fa-camera text-[10px]"></i><input type="file" id="setupFile" class="hidden" accept="image/*"></label>
                 </div>
                 <input type="text" id="setupName" placeholder="Aapka Naam" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 transition">
-                <input type="text" id="setupBio" placeholder="Profession (e.g. Web Dev)" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                <input type="text" id="setupBio" placeholder="Profession (e.g. Creator)" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 transition">
             </div>
-            <button onclick="saveInitialSetup()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition">Banao Poster</button>
+            <button onclick="saveInitialSetup()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition">Start Creating</button>
         </div>
     </div>
 
     <script>
-        let currentUser = { name: "Creative Mind", bio: "Poster Designer", pic: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" };
+        let currentUser = { name: "Creator", bio: "Visual Designer", pic: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" };
         let selectedElement = null;
 
         const premiumGradients = [
             { name: "Night", style: "#0f172a" },
-            { name: "Deep", style: "#1e293b" },
-            { name: "Indigo", style: "linear-gradient(45deg, #312e81, #1e1b4b)" },
-            { name: "Purple", style: "linear-gradient(45deg, #4c1d95, #2e1065)" },
-            { name: "Crimson", style: "linear-gradient(45deg, #881337, #4c0519)" },
-            { name: "Teal", style: "linear-gradient(45deg, #134e4a, #042f2e)" }
+            { name: "Deep Slate", style: "#1e293b" },
+            { name: "Indigo", style: "linear-gradient(45deg, #1e1b4b, #312e81)" },
+            { name: "Royal Purple", style: "linear-gradient(45deg, #2e1065, #4c1d95)" },
+            { name: "Dark Rose", style: "linear-gradient(45deg, #4c0519, #881337)" },
+            { name: "Abyss", style: "#000000" }
         ];
 
         const demoImages = [
@@ -280,7 +286,7 @@
         }
 
         function loadUser() {
-            const saved = localStorage.getItem('ps_user_v5');
+            const saved = localStorage.getItem('ps_user_v6');
             if (saved) {
                 currentUser = JSON.parse(saved);
                 updateUI();
@@ -321,13 +327,13 @@
 
         function saveInitialSetup() {
             const name = document.getElementById('setupName').value.trim();
-            if (!name) return showMessage("Naam bhariye!");
+            if (!name) return showMessage("Pehle naam enter karein!");
             currentUser.name = name;
             currentUser.bio = document.getElementById('setupBio').value.trim();
-            localStorage.setItem('ps_user_v5', JSON.stringify(currentUser));
+            localStorage.setItem('ps_user_v6', JSON.stringify(currentUser));
             updateUI();
             toggleSetupModal(false);
-            showMessage("Branding Saved!");
+            showMessage("Branding Set!");
         }
 
         function initGallery() {
@@ -338,7 +344,7 @@
                 div.className = 'masonry-item animate-fade-in';
                 div.style.animationDelay = `${index * 100}ms`;
                 div.innerHTML = `
-                    <div class="relative group cursor-pointer overflow-hidden rounded-2xl bg-slate-900 border border-white/5" onclick="openEditor('${url}')">
+                    <div class="relative group cursor-pointer overflow-hidden rounded-2xl bg-slate-900 border border-white/5 shadow-lg" onclick="openEditor('${url}')">
                         <img src="${url}" class="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-all duration-500 scale-100 group-hover:scale-105" loading="lazy">
                     </div>
                 `;
@@ -364,6 +370,7 @@
             document.getElementById('dragContainer').innerHTML = '';
             showPanel('Text');
             deselectAll();
+            setTheme('left'); // Reset to default
         }
 
         function closeEditor() {
@@ -380,25 +387,27 @@
         }
 
         /**
-         * UPDATED THEME FOR NON-OVERLAY FOOTER
+         * UPDATED THEME FOR COMPLETELY SEPARATE FOOTER LOOK
          */
         function setTheme(align) {
             const overlay = document.getElementById('canvasProfileOverlay');
-            overlay.className = "relative z-30 p-5 flex border-t border-white/5";
+            overlay.className = "relative z-30 p-6 flex border-t border-white/10";
             overlay.style.alignItems = "center";
             overlay.style.flexDirection = "";
             overlay.style.textAlign = "";
             
+            const infoContainer = overlay.querySelector('.flex-1');
+            infoContainer.classList.remove('ml-4', 'mr-4', 'mt-3');
+            
             if (align === 'left') {
                 overlay.classList.add('flex-row', 'text-left');
+                infoContainer.classList.add('ml-4');
             } else if (align === 'center') {
                 overlay.classList.add('flex-col', 'text-center');
-                overlay.querySelector('.flex-1').classList.remove('ml-4');
-                overlay.querySelector('.flex-1').classList.add('mt-3');
+                infoContainer.classList.add('mt-3');
             } else if (align === 'right') {
                 overlay.classList.add('flex-row-reverse', 'text-right');
-                overlay.querySelector('.flex-1').classList.remove('ml-4');
-                overlay.querySelector('.flex-1').classList.add('mr-4');
+                infoContainer.classList.add('mr-4');
             }
         }
 
@@ -415,6 +424,8 @@
             el.innerText = val;
             el.style.fontSize = '24px';
             el.style.top = '25%'; el.style.left = '10%';
+            el.style.fontFamily = "'Outfit', sans-serif";
+            
             el.onmousedown = (e) => { e.stopPropagation(); selectText(el); };
             el.ontouchstart = (e) => { e.stopPropagation(); selectText(el); };
             makeDraggable(el);
@@ -490,7 +501,7 @@
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
                 showMessage("Poster Saved!");
-            } catch(e) { showMessage("Error!"); }
+            } catch(e) { showMessage("Render Error!"); }
             finally { btn.innerHTML = originalHTML; btn.disabled = false; }
         }
 
@@ -500,7 +511,7 @@
                 canvas.toBlob(async blob => {
                     const file = new File([blob], 'poster.png', { type: 'image/png' });
                     if (navigator.share) await navigator.share({ title: 'Poster Studio Pro', files: [file] });
-                    else showMessage("Not supported!");
+                    else showMessage("Sharing not supported!");
                 });
             } catch(e) { showMessage("Error!"); }
         }
