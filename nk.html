@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poster Studio Pro | Creative Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Expanded Fonts including Hindi and Stylized English -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Pacifico&family=Outfit:wght@300;400;700&family=Zeyada&family=Noto+Sans+Devanagari:wght@400;700&family=Montserrat:wght@800&family=Dancing+Script:wght@700&family=Space+Grotesk:wght@500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --surface: #ffffff;
+            --background: #f8fafc;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--background);
+            color: #1e293b;
+            user-select: none;
+        }
+
+        /* Pinterest Masonry Layout */
+        .masonry-grid {
+            columns: 2;
+            column-gap: 1rem;
+            padding: 1rem;
+        }
+        @media (min-width: 768px) { .masonry-grid { columns: 3; } }
+        @media (min-width: 1024px) { .masonry-grid { columns: 4; } }
+        @media (min-width: 1280px) { .masonry-grid { columns: 5; } }
+
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 1rem;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .masonry-item:hover { transform: scale(1.02); }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Custom Shapes */
+        .shape-hexagon { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .shape-rhombus { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .shape-squircle { border-radius: 25% 25% 25% 25% / 25% 25% 25% 25%; }
+
+        /* Draggable Text Styling */
+        .draggable-element {
+            cursor: move;
+            position: absolute;
+            touch-action: none;
+            padding: 4px 8px;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            max-width: 90%;
+        }
+        .draggable-element.selected {
+            border: 2px dashed rgba(255,255,255,0.6);
+            background: rgba(0,0,0,0.2);
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .profile-overlay-gradient {
+            transition: all 0.4s ease;
+        }
+
+        .font-hindi { font-family: 'Noto Sans Devanagari', sans-serif; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <!-- Setup Modal -->
+    <div id="setupModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-fade-in text-center">
+            <div class="mb-6 text-center">
+                <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-magic text-indigo-600 text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">Set Up Your Brand</h2>
+                <p class="text-slate-500">Auto-watermark your posters</p>
+            </div>
+            
+            <div class="relative w-28 h-28 mx-auto mb-6 group">
+                <img id="setupPreview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full rounded-full object-cover border-4 border-indigo-50 px-1">
+                <label class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full cursor-pointer shadow-lg hover:bg-indigo-700 transition">
+                    <i class="fas fa-camera text-xs"></i>
+                    <input type="file" id="setupFile" class="hidden" accept="image/*">
+                </label>
+            </div>
+
+            <div class="space-y-4 mb-8">
+                <input type="text" id="setupName" placeholder="Your Name" class="w-full px-5 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                <input type="text" id="setupBio" placeholder="Profession (e.g. Creator)" class="w-full px-5 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+            </div>
+
+            <button onclick="saveInitialSetup()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Go to Studio</button>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-bolt text-white text-lg"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight text-slate-800 hidden sm:block">Poster Studio <span class="text-indigo-600">Pro</span></span>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSetupModal(true)" class="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 p-1.5 pr-4 rounded-full border border-slate-200 transition group">
+                    <img id="navPic" src="" class="w-8 h-8 rounded-full border border-white shadow-sm">
+                    <span id="navName" class="text-xs font-bold text-slate-700 uppercase tracking-wider"></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Gallery Feed -->
+    <main class="max-w-7xl mx-auto pb-24">
+        <div id="masonryContainer" class="masonry-grid">
+            <!-- Dynamic Items -->
+        </div>
+        
+        <div id="loader" class="flex flex-col items-center py-10 opacity-0 transition-opacity duration-500">
+            <div class="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+    </main>
+
+    <!-- Poster Editor -->
+    <div id="editorModal" class="fixed inset-0 z-50 bg-slate-900 flex flex-col md:flex-row hidden overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-full md:w-80 lg:w-96 bg-white flex flex-col order-2 md:order-1 h-1/2 md:h-full overflow-y-auto border-r border-slate-200">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fas fa-sliders text-indigo-500"></i> Studio Tools
+                </h3>
+                <button onclick="closeEditor()" class="text-slate-400 hover:text-rose-500 transition">
+                    <i class="fas fa-times-circle text-2xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-8">
+                <!-- Text Tool -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">New Content</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="textInput" placeholder="Type something..." class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-indigo-500 text-sm">
+                            <button onclick="addNewText()" class="bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700 transition">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contextual Text Editor (Hidden by default) -->
+                    <div id="textEditPanel" class="hidden animate-fade-in p-4 bg-indigo-50 rounded-2xl space-y-4 border border-indigo-100">
+                        <label class="block text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Styling Selected Text</label>
+                        
+                        <div>
+                            <label class="text-[10px] text-slate-500 mb-1 block">Font Style</label>
+                            <select id="fontSelect" onchange="updateTextStyling()" class="w-full text-xs p-2 rounded-lg border border-indigo-200 outline-none">
+                                <option value="'Outfit', sans-serif">Modern Sans</option>
+                                <option value="'Playfair Display', serif">Classic Serif</option>
+                                <option value="'Noto Sans Devanagari', sans-serif">Hindi (Classic)</option>
+                                <option value="'Bebas Neue', sans-serif">Bold Header</option>
+                                <option value="'Pacifico', cursive">Handwritten</option>
+                                <option value="'Zeyada', cursive">Fine Script</option>
+                                <option value="'Montserrat', sans-serif">Ultra Black</option>
+                                <option value="'Dancing Script', cursive">Elegant Script</option>
+                                <option value="'Space Grotesk', sans-serif">Tech/Retro</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <label class="text-[10px] text-slate-500">Size</label>
+                                <span id="sizeLabel" class="text-[10px] font-bold">24px</span>
+                            </div>
+                            <input type="range" id="sizeRange" min="12" max="120" value="24" oninput="updateTextStyling()" class="w-full accent-indigo-600">
+                        </div>
+
+                        <div class="flex gap-2">
+                            <div class="flex-1">
+                                <label class="text-[10px] text-slate-500 mb-1 block">Color</label>
+                                <input type="color" id="colorPicker" value="#ffffff" oninput="updateTextStyling()" class="w-full h-8 p-0 rounded-md border-none cursor-pointer">
+                            </div>
+                            <button onclick="deleteSelectedText()" class="px-4 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-100 transition">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme / Layout -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Card Layout</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setTheme('left')" class="p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-500 transition flex flex-col items-center gap-1">
+                            <i class="fas fa-align-left text-xs"></i>
+                            <span class="text-[9px] uppercase font-bold">Left</span>
+                        </button>
+                        <button onclick="setTheme('center')" class="p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-500 transition flex flex-col items-center gap-1">
+                            <i class="fas fa-align-center text-xs"></i>
+                            <span class="text-[9px] uppercase font-bold">Center</span>
+                        </button>
+                        <button onclick="setTheme('right')" class="p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-500 transition flex flex-col items-center gap-1">
+                            <i class="fas fa-align-right text-xs"></i>
+                            <span class="text-[9px] uppercase font-bold">Right</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Avatar Styles -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Avatar Style</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setShape('rounded-full')" class="aspect-square rounded-full border-2 border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] hover:border-indigo-500 transition">○</button>
+                        <button onclick="setShape('rounded-2xl')" class="aspect-square rounded-xl border-2 border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] hover:border-indigo-500 transition">□</button>
+                        <button onclick="setShape('shape-squircle')" class="aspect-square shape-squircle border-2 border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] hover:border-indigo-500 transition">◇</button>
+                        <button onclick="setShape('shape-hexagon')" class="aspect-square shape-hexagon border-2 border-slate-200 bg-slate-100 flex items-center justify-center text-[10px] hover:border-indigo-500 transition">⬢</button>
+                    </div>
+                </div>
+
+                <!-- Premade Card Overlays -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Premade Card Styles</label>
+                    <div class="grid grid-cols-4 gap-2 overflow-y-auto max-h-48 pr-2" id="bgSelectors">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export -->
+            <div class="mt-auto p-6 bg-slate-50 border-t border-slate-100 space-y-3">
+                <button onclick="sharePoster()" class="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-100 transition shadow-sm">
+                    <i class="fas fa-share-nodes"></i> Share Socially
+                </button>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="downloadPoster(1.5)" class="bg-indigo-50 text-indigo-700 py-3 rounded-xl font-bold text-xs hover:bg-indigo-100 transition">Quick Save</button>
+                    <button onclick="downloadPoster(3.5)" class="bg-indigo-600 text-white py-3 rounded-xl font-bold text-xs hover:bg-indigo-700 transition">HD Print</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Canvas Area -->
+        <section class="flex-1 bg-slate-800 p-4 md:p-8 flex items-center justify-center order-1 md:order-2 overflow-hidden" onclick="deselectAll()">
+            <div id="captureArea" class="relative w-full max-w-[360px] aspect-[4/5] bg-white shadow-2xl rounded-3xl overflow-hidden ring-8 ring-white/10">
+                <img id="canvasMainImage" src="" class="w-full h-full object-cover pointer-events-none" crossorigin="anonymous">
+                
+                <!-- Draggable Container -->
+                <div id="dragContainer" class="absolute inset-0 z-20 overflow-hidden"></div>
+
+                <!-- Dynamic Profile Overlay -->
+                <div id="canvasProfileOverlay" class="absolute bottom-0 left-0 right-0 z-30 p-6 flex items-end gap-4 profile-overlay-gradient backdrop-blur-[2px]">
+                    <div id="canvasAvatarContainer" class="relative group">
+                        <img id="canvasAvatar" src="" class="w-16 h-16 object-cover border-2 border-white/50 shadow-lg transition-all duration-500">
+                        <div class="absolute -bottom-1 -right-1 bg-indigo-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[8px] border-2 border-white">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 pb-1">
+                        <h4 id="canvasName" class="text-white font-bold text-lg leading-tight drop-shadow-md"></h4>
+                        <p id="canvasBio" class="text-white/80 text-xs font-medium"></p>
+                    </div>
+                    <div class="text-right pb-1 opacity-40">
+                        <span class="text-[7px] text-white font-black uppercase tracking-[0.2em] block mb-0.5">Verified</span>
+                        <span id="domainTag" class="text-[9px] text-white font-bold tracking-tighter">STUDIO</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let currentUser = {
+            name: "New Creator",
+            bio: "Content Designer",
+            pic: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+        };
+
+        let selectedElement = null;
+
+        const premiumGradients = [
+            { name: "Classic Night", style: "linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.2), transparent)" },
+            { name: "Ocean Deep", style: "linear-gradient(to top, rgba(30,58,138,0.9), rgba(30,58,138,0.2), transparent)" },
+            { name: "Rose Tint", style: "linear-gradient(to top, rgba(159,18,57,0.9), rgba(159,18,57,0.2), transparent)" },
+            { name: "Forest", style: "linear-gradient(to top, rgba(6,78,59,0.9), rgba(6,78,59,0.2), transparent)" },
+            { name: "Golden Hour", style: "linear-gradient(to top, rgba(120,53,15,0.9), rgba(120,53,15,0.2), transparent)" },
+            { name: "Cyber Neon", style: "linear-gradient(to top, rgba(76,29,149,0.95), rgba(219,39,119,0.3), transparent)" },
+            { name: "Frosted Glass", style: "rgba(255,255,255,0.15)" },
+            { name: "Midnight Mesh", style: "radial-gradient(at bottom right, rgba(99,102,241,0.8), rgba(0,0,0,0.9))" },
+            { name: "Sunset Blur", style: "radial-gradient(at bottom left, rgba(244,63,94,0.8), rgba(0,0,0,0.8))" },
+            { name: "Clean Slate", style: "rgba(0,0,0,0.6)" },
+            { name: "Soft Peach", style: "linear-gradient(to top, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)" },
+            { name: "Aurora", style: "linear-gradient(to top, #30cfd0 0%, #330867 100%)" }
+        ];
+
+        const demoImages = [
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600",
+            "https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=600",
+            "https://images.unsplash.com/photo-1529139513402-e209979821ed?q=80&w=600",
+            "https://images.unsplash.com/photo-1539109132314-34a77ad70327?q=80&w=600",
+            "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600",
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600",
+            "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=600",
+            "https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?q=80&w=600",
+            "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600",
+            "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?q=80&w=600"
+        ];
+
+        window.onload = () => {
+            loadUser();
+            initGallery();
+            initPremadeCards();
+            document.getElementById('domainTag').innerText = window.location.hostname.split('.')[0].toUpperCase() || 'STUDIO';
+            
+            window.addEventListener('scroll', () => {
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
+                    showLoader();
+                    setTimeout(initGallery, 600);
+                }
+            });
+        };
+
+        function loadUser() {
+            const saved = localStorage.getItem('ps_user_v2');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                updateUIWithUser();
+            } else {
+                toggleSetupModal(true);
+            }
+        }
+
+        function updateUIWithUser() {
+            document.getElementById('navName').innerText = currentUser.name;
+            document.getElementById('navPic').src = currentUser.pic;
+            document.getElementById('canvasName').innerText = currentUser.name;
+            document.getElementById('canvasBio').innerText = currentUser.bio;
+            document.getElementById('canvasAvatar').src = currentUser.pic;
+        }
+
+        function toggleSetupModal(show) {
+            const modal = document.getElementById('setupModal');
+            if (show) {
+                modal.classList.remove('hidden');
+                document.getElementById('setupName').value = currentUser.name;
+                document.getElementById('setupBio').value = currentUser.bio;
+                document.getElementById('setupPreview').src = currentUser.pic;
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('setupFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('setupPreview').src = ev.target.result;
+                    currentUser.pic = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function saveInitialSetup() {
+            const name = document.getElementById('setupName').value;
+            const bio = document.getElementById('setupBio').value;
+            if (!name) return alert("Please enter your name");
+            currentUser.name = name;
+            currentUser.bio = bio;
+            localStorage.setItem('ps_user_v2', JSON.stringify(currentUser));
+            updateUIWithUser();
+            toggleSetupModal(false);
+        }
+
+        function initGallery() {
+            const container = document.getElementById('masonryContainer');
+            const pool = [...demoImages].sort(() => Math.random() - 0.5);
+            pool.forEach(url => {
+                const div = document.createElement('div');
+                div.className = 'masonry-item opacity-0';
+                div.innerHTML = `
+                    <div class="relative group cursor-pointer overflow-hidden rounded-3xl bg-slate-200">
+                        <img src="${url}" class="w-full h-auto object-cover" loading="lazy">
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-5">
+                            <button onclick="openEditor('${url}')" class="bg-white text-indigo-600 w-full py-3 rounded-2xl font-bold text-xs transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                                <i class="fas fa-edit mr-2"></i> Customize
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+                setTimeout(() => div.classList.replace('opacity-0', 'animate-fade-in'), Math.random() * 400);
+            });
+            hideLoader();
+        }
+
+        function showLoader() { document.getElementById('loader').style.opacity = '1'; }
+        function hideLoader() { document.getElementById('loader').style.opacity = '0'; }
+
+        function initPremadeCards() {
+            const container = document.getElementById('bgSelectors');
+            premiumGradients.forEach(grad => {
+                const btn = document.createElement('button');
+                btn.className = 'aspect-square rounded-xl border-2 border-white shadow-sm ring-1 ring-slate-200 hover:ring-indigo-400 transition transform hover:scale-110';
+                btn.style.background = grad.style;
+                btn.title = grad.name;
+                btn.onclick = () => document.getElementById('canvasProfileOverlay').style.background = grad.style;
+                container.appendChild(btn);
+            });
+        }
+
+        function openEditor(imgUrl) {
+            document.getElementById('canvasMainImage').src = imgUrl;
+            document.getElementById('editorModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('dragContainer').innerHTML = '';
+            setTheme('left');
+            setShape('rounded-full');
+            deselectAll();
+        }
+
+        function closeEditor() {
+            document.getElementById('editorModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function setTheme(align) {
+            const overlay = document.getElementById('canvasProfileOverlay');
+            overlay.className = "absolute bottom-0 left-0 right-0 z-30 p-6 flex items-end profile-overlay-gradient backdrop-blur-[2px]";
+            if (align === 'left') {
+                overlay.classList.add('flex-row', 'text-left', 'gap-4');
+                overlay.style.alignItems = "flex-end";
+            } else if (align === 'center') {
+                overlay.classList.add('flex-col', 'items-center', 'text-center', 'gap-2');
+            } else if (align === 'right') {
+                overlay.classList.add('flex-row-reverse', 'text-right', 'gap-4');
+                overlay.style.alignItems = "flex-end";
+            }
+        }
+
+        function setShape(shapeClass) {
+            const avatar = document.getElementById('canvasAvatar');
+            avatar.className = `w-16 h-16 object-cover border-2 border-white/50 shadow-lg transition-all duration-500 ${shapeClass}`;
+        }
+
+        /**
+         * UPDATED TEXT ENGINE
+         */
+        function addNewText() {
+            const input = document.getElementById('textInput');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const el = document.createElement('div');
+            el.className = 'draggable-element text-white drop-shadow-lg';
+            el.innerText = val;
+            el.style.fontSize = '24px';
+            el.style.top = '25%';
+            el.style.left = '10%';
+            el.style.color = '#ffffff';
+            
+            el.addEventListener('mousedown', (e) => selectText(el, e));
+            el.addEventListener('touchstart', (e) => selectText(el, e));
+            
+            makeDraggable(el);
+            document.getElementById('dragContainer').appendChild(el);
+            input.value = '';
+            selectText(el);
+        }
+
+        function selectText(el, e) {
+            if(e) e.stopPropagation();
+            deselectAll();
+            selectedElement = el;
+            el.classList.add('selected');
+            
+            // Show & Update Panel
+            const panel = document.getElementById('textEditPanel');
+            panel.classList.remove('hidden');
+            
+            document.getElementById('fontSelect').value = el.style.fontFamily || "'Outfit', sans-serif";
+            document.getElementById('sizeRange').value = parseInt(el.style.fontSize);
+            document.getElementById('sizeLabel').innerText = el.style.fontSize;
+            document.getElementById('colorPicker').value = rgbToHex(el.style.color);
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('.draggable-element').forEach(el => el.classList.remove('selected'));
+            selectedElement = null;
+            document.getElementById('textEditPanel').classList.add('hidden');
+        }
+
+        function updateTextStyling() {
+            if (!selectedElement) return;
+            const font = document.getElementById('fontSelect').value;
+            const size = document.getElementById('sizeRange').value;
+            const color = document.getElementById('colorPicker').value;
+            
+            selectedElement.style.fontFamily = font;
+            selectedElement.style.fontSize = size + 'px';
+            selectedElement.style.color = color;
+            document.getElementById('sizeLabel').innerText = size + 'px';
+        }
+
+        function deleteSelectedText() {
+            if (selectedElement) {
+                selectedElement.remove();
+                deselectAll();
+            }
+        }
+
+        function rgbToHex(rgb) {
+            if (!rgb || rgb.startsWith('#')) return rgb || '#ffffff';
+            const parts = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!parts) return '#ffffff';
+            delete(parts[0]);
+            for (let i = 1; i <= 3; ++i) {
+                parts[i] = parseInt(parts[i]).toString(16);
+                if (parts[i].length == 1) parts[i] = '0' + parts[i];
+            }
+            return '#' + parts.join('');
+        }
+
+        function makeDraggable(el) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            el.onmousedown = dragMouseDown;
+            el.ontouchstart = (e) => {
+                const t = e.touches[0];
+                dragMouseDown({ clientX: t.clientX, clientY: t.clientY, preventDefault: () => {} });
+            };
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+                document.ontouchend = closeDragElement;
+                document.ontouchmove = (ev) => {
+                    const t = ev.touches[0];
+                    elementDrag({ clientX: t.clientX, clientY: t.clientY, preventDefault: () => {} });
+                };
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                el.style.top = (el.offsetTop - pos2) + "px";
+                el.style.left = (el.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+                document.ontouchend = null;
+                document.ontouchmove = null;
+            }
+        }
+
+        async function downloadPoster(scaleFactor) {
+            deselectAll();
+            const area = document.getElementById('captureArea');
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin"></i> Rendering...';
+            btn.disabled = true;
+
+            try {
+                const canvas = await html2canvas(area, {
+                    scale: scaleFactor,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: null
+                });
+                const link = document.createElement('a');
+                link.download = `poster-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                alert("Render failed. Some images may have security restrictions.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function sharePoster() {
+            deselectAll();
+            const area = document.getElementById('captureArea');
+            const canvas = await html2canvas(area, { scale: 2, useCORS: true });
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], 'poster.png', { type: 'image/png' });
+                if (navigator.share) {
+                    try { await navigator.share({ title: 'My Poster Studio Creation', files: [file] }); } catch (err) {}
+                } else {
+                    alert("Sharing not supported. Use the Download button instead.");
+                }
+            });
+        }
+    </script>
+</body>
+</html>
