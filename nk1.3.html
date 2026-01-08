@@ -18,7 +18,7 @@
 
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: #0f172a; /* Dark background for focus */
+            background-color: #0f172a; 
             color: #f8fafc;
             user-select: none;
             overflow: hidden;
@@ -36,9 +36,23 @@
         .masonry-item {
             break-inside: avoid;
             margin-bottom: 1rem;
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0; /* Default invisible for animation */
         }
-        .masonry-item:hover { transform: scale(1.02); }
+
+        /* Animations Fix */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { 
+            animation: fadeIn 0.5s ease-out forwards; 
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
 
         /* Shapes */
         .shape-hexagon { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
@@ -61,201 +75,206 @@
             background: rgba(0,0,0,0.3);
         }
 
-        /* Animations */
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
-
-        /* Custom Scrollbar for tools */
+        /* Custom Scrollbar */
         .custom-scroll::-webkit-scrollbar { height: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
 
         #msgBox {
             position: fixed;
-            top: 80px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 2000;
             display: none;
         }
+
+        .profile-overlay-gradient {
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
-    <div id="msgBox" class="bg-indigo-600 text-white px-6 py-2 rounded-full shadow-2xl font-bold text-xs"></div>
+    <div id="msgBox" class="bg-indigo-600 text-white px-6 py-2 rounded-full shadow-2xl font-bold text-xs animate-fade-in"></div>
 
     <!-- Main Navigation (Gallery View) -->
-    <nav id="galleryNav" class="bg-white/10 backdrop-blur-md border-b border-white/10 px-4 h-16 flex items-center justify-between shrink-0">
+    <nav id="galleryNav" class="bg-slate-900 border-b border-white/10 px-4 h-16 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-                <i class="fas fa-bolt text-white text-sm"></i>
+                <i class="fas fa-palette text-white text-sm"></i>
             </div>
             <span class="font-bold tracking-tight text-white uppercase text-sm">Poster Studio</span>
         </div>
-        <button onclick="toggleSetupModal(true)" class="bg-white/10 hover:bg-white/20 p-2 rounded-full border border-white/10 transition">
-            <img id="navPic" src="" class="w-8 h-8 rounded-full">
+        <button onclick="toggleSetupModal(true)" class="bg-white/5 hover:bg-white/10 p-1 rounded-full border border-white/10 transition flex items-center gap-2 pr-3">
+            <img id="navPic" src="" class="w-8 h-8 rounded-full object-cover">
+            <span id="navNameDisplay" class="text-[10px] font-bold uppercase hidden sm:block">Profile</span>
         </button>
     </nav>
 
     <!-- Gallery Feed -->
-    <main id="gallerySection" class="flex-1 overflow-y-auto">
-        <div id="masonryContainer" class="masonry-grid max-w-7xl mx-auto"></div>
-        <div id="loader" class="flex flex-col items-center py-10 opacity-0 transition-opacity">
+    <main id="gallerySection" class="flex-1 overflow-y-auto bg-slate-950">
+        <div id="masonryContainer" class="masonry-grid max-w-7xl mx-auto">
+            <!-- Images will be injected here -->
+        </div>
+        <div id="loader" class="flex flex-col items-center py-10">
             <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
     </main>
 
     <!-- Editor Mode (Full Screen) -->
     <div id="editorModal" class="fixed inset-0 z-50 bg-slate-900 flex flex-col hidden overflow-hidden">
-        <!-- Editor Header (Share/Save moved here) -->
+        <!-- Editor Header -->
         <header class="h-16 border-b border-white/10 flex items-center justify-between px-4 bg-slate-900 shrink-0">
-            <button onclick="closeEditor()" class="text-white/60 hover:text-white p-2">
-                <i class="fas fa-arrow-left text-xl"></i>
+            <button onclick="closeEditor()" class="text-white/60 hover:text-white p-2 flex items-center gap-2">
+                <i class="fas fa-chevron-left"></i>
+                <span class="text-xs font-bold uppercase tracking-widest hidden sm:block">Back</span>
             </button>
             
-            <div class="flex items-center gap-3">
-                <button onclick="sharePoster()" class="bg-white/5 hover:bg-white/10 text-white p-2.5 px-4 rounded-xl border border-white/10 text-xs font-bold flex items-center gap-2 transition">
+            <div class="flex items-center gap-2">
+                <button onclick="sharePoster()" class="bg-white/5 hover:bg-white/10 text-white p-2 px-4 rounded-xl border border-white/10 text-[10px] font-bold flex items-center gap-2 transition uppercase">
                     <i class="fas fa-share-nodes"></i> Share
                 </button>
                 <div class="h-6 w-px bg-white/10 mx-1"></div>
-                <button onclick="downloadPoster(2)" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 px-4 rounded-xl text-xs font-bold flex items-center gap-2 transition">
+                <button onclick="downloadPoster(2)" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 px-4 rounded-xl text-[10px] font-bold flex items-center gap-2 transition uppercase">
                     <i class="fas fa-download"></i> SD
                 </button>
-                <button onclick="downloadPoster(5)" class="bg-amber-500 hover:bg-amber-600 text-slate-900 p-2.5 px-4 rounded-xl text-xs font-bold flex items-center gap-2 transition">
+                <button onclick="downloadPoster(5)" class="bg-amber-500 hover:bg-amber-600 text-slate-900 p-2 px-4 rounded-xl text-[10px] font-bold flex items-center gap-2 transition uppercase">
                     <i class="fas fa-crown"></i> HD
                 </button>
             </div>
         </header>
 
-        <!-- Main Workspace (Full Size Image) -->
-        <div class="flex-1 relative flex flex-col items-center justify-center p-4 md:p-12 overflow-hidden" onclick="deselectAll()">
-            <div id="captureArea" class="relative w-full max-w-[380px] aspect-[4/5] bg-white shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-3xl overflow-hidden ring-1 ring-white/20" onclick="event.stopPropagation()">
+        <!-- Main Workspace -->
+        <div class="flex-1 relative flex flex-col items-center justify-center p-4 overflow-hidden" onclick="deselectAll()">
+            <div id="captureArea" class="relative w-full max-w-[360px] aspect-[4/5] bg-white shadow-[0_0_80px_rgba(0,0,0,0.6)] rounded-3xl overflow-hidden ring-1 ring-white/20" onclick="event.stopPropagation()">
                 <img id="canvasMainImage" src="" class="w-full h-full object-cover pointer-events-none" crossorigin="anonymous">
                 <div id="dragContainer" class="absolute inset-0 z-20"></div>
                 
-                <div id="canvasProfileOverlay" class="absolute bottom-0 left-0 right-0 z-30 p-6 flex profile-overlay-gradient backdrop-blur-[2px]">
+                <div id="canvasProfileOverlay" class="absolute bottom-0 left-0 right-0 z-30 p-6 flex profile-overlay-gradient backdrop-blur-[1px]">
                     <div id="canvasAvatarContainer" class="relative">
-                        <img id="canvasAvatar" src="" class="w-16 h-16 object-cover border-2 border-white/50 shadow-lg">
-                        <div class="absolute -bottom-1 -right-1 bg-indigo-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[8px] border-2 border-white">
-                            <i class="fas fa-check"></i>
-                        </div>
+                        <img id="canvasAvatar" src="" class="w-14 h-14 object-cover border-2 border-white/50 shadow-lg rounded-full">
                     </div>
                     <div class="flex-1 pb-1 ml-4">
-                        <h4 id="canvasName" class="text-white font-bold text-lg leading-tight"></h4>
-                        <p id="canvasBio" class="text-white/80 text-xs"></p>
+                        <h4 id="canvasName" class="text-white font-bold text-base leading-tight"></h4>
+                        <p id="canvasBio" class="text-white/80 text-[10px] uppercase tracking-wider"></p>
                     </div>
                     <div class="text-right pb-1 opacity-40">
-                        <span id="domainTag" class="text-[9px] text-white font-bold tracking-tighter">STUDIO</span>
+                        <span id="domainTag" class="text-[8px] text-white font-black tracking-widest">STUDIO</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tool Panels (Bottom Overlays) -->
+        <!-- Tool Panels -->
         <div id="activeToolPanel" class="bg-slate-800 border-t border-white/10 animate-slide-up p-4 hidden shrink-0">
             <!-- Text Panel -->
             <div id="panelText" class="tool-panel hidden space-y-4">
                 <div class="flex gap-2">
-                    <input type="text" id="textInput" placeholder="Naya text likhein..." class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-indigo-500">
-                    <button onclick="addNewText()" class="bg-indigo-600 text-white px-6 rounded-xl font-bold">Add</button>
+                    <input type="text" id="textInput" placeholder="Naya text likhein..." class="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-indigo-500 text-sm">
+                    <button onclick="addNewText()" class="bg-indigo-600 text-white px-6 rounded-xl font-bold text-sm">Add</button>
                 </div>
                 <div id="textEditPanel" class="hidden flex flex-wrap gap-4 items-center bg-white/5 p-3 rounded-2xl border border-white/10">
-                    <select id="fontSelect" onchange="updateTextStyling()" class="bg-slate-900 text-white text-xs p-2 rounded-lg outline-none flex-1">
-                        <option value="'Outfit', sans-serif">Modern Sans</option>
+                    <select id="fontSelect" onchange="updateTextStyling()" class="bg-slate-900 text-white text-[10px] p-2 rounded-lg outline-none flex-1 font-bold uppercase">
+                        <option value="'Outfit', sans-serif">Modern</option>
+                        <option value="'Playfair Display', serif">Classic</option>
                         <option value="'Noto Sans Devanagari', sans-serif">Hindi</option>
-                        <option value="'Pacifico', cursive">Style</option>
+                        <option value="'Pacifico', cursive">Script</option>
                         <option value="'Montserrat', sans-serif">Bold</option>
                     </select>
                     <input type="range" id="sizeRange" min="12" max="100" oninput="updateTextStyling()" class="flex-1 accent-indigo-500">
-                    <input type="color" id="colorPicker" oninput="updateTextStyling()" class="w-8 h-8 rounded-full border-none bg-transparent cursor-pointer">
+                    <input type="color" id="colorPicker" oninput="updateTextStyling()" class="w-8 h-8 rounded-full border-none bg-transparent cursor-pointer overflow-hidden">
                     <button onclick="deleteSelectedText()" class="text-rose-500 p-2"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
 
             <!-- Layout Panel -->
             <div id="panelLayout" class="tool-panel hidden flex justify-around p-2">
-                <button onclick="setTheme('left')" class="flex flex-col items-center gap-2 text-white/60 hover:text-white">
-                    <i class="fas fa-align-left text-xl"></i><span class="text-[10px]">Left</span>
+                <button onclick="setTheme('left')" class="flex flex-col items-center gap-2 text-white/40 hover:text-white transition">
+                    <i class="fas fa-align-left text-xl"></i><span class="text-[9px] font-bold uppercase">Left</span>
                 </button>
-                <button onclick="setTheme('center')" class="flex flex-col items-center gap-2 text-white/60 hover:text-white">
-                    <i class="fas fa-align-center text-xl"></i><span class="text-[10px]">Center</span>
+                <button onclick="setTheme('center')" class="flex flex-col items-center gap-2 text-white/40 hover:text-white transition">
+                    <i class="fas fa-align-center text-xl"></i><span class="text-[9px] font-bold uppercase">Center</span>
                 </button>
-                <button onclick="setTheme('right')" class="flex flex-col items-center gap-2 text-white/60 hover:text-white">
-                    <i class="fas fa-align-right text-xl"></i><span class="text-[10px]">Right</span>
+                <button onclick="setTheme('right')" class="flex flex-col items-center gap-2 text-white/40 hover:text-white transition">
+                    <i class="fas fa-align-right text-xl"></i><span class="text-[9px] font-bold uppercase">Right</span>
                 </button>
             </div>
 
             <!-- Avatar Panel -->
             <div id="panelAvatar" class="tool-panel hidden flex justify-around p-2">
-                <button onclick="setShape('rounded-full')" class="w-10 h-10 rounded-full border border-white/20"></button>
-                <button onclick="setShape('rounded-2xl')" class="w-10 h-10 rounded-2xl border border-white/20"></button>
-                <button onclick="setShape('shape-squircle')" class="w-10 h-10 shape-squircle border border-white/20"></button>
-                <button onclick="setShape('shape-hexagon')" class="w-10 h-10 shape-hexagon border border-white/20"></button>
+                <button onclick="setShape('rounded-full')" class="w-10 h-10 rounded-full border-2 border-white/20 hover:border-indigo-500 transition"></button>
+                <button onclick="setShape('rounded-2xl')" class="w-10 h-10 rounded-2xl border-2 border-white/20 hover:border-indigo-500 transition"></button>
+                <button onclick="setShape('shape-squircle')" class="w-10 h-10 shape-squircle border-2 border-white/20 hover:border-indigo-500 transition"></button>
+                <button onclick="setShape('shape-hexagon')" class="w-10 h-10 shape-hexagon border-2 border-white/20 hover:border-indigo-500 transition"></button>
             </div>
 
             <!-- Styles Panel -->
             <div id="panelStyles" class="tool-panel hidden overflow-x-auto whitespace-nowrap custom-scroll py-2">
-                <div id="bgSelectors" class="flex gap-3 px-2"></div>
+                <div id="bgSelectors" class="flex gap-4 px-2"></div>
             </div>
         </div>
 
         <!-- Bottom Menu Bar -->
         <nav class="h-20 bg-slate-900 border-t border-white/10 flex items-center justify-around shrink-0 pb-2">
-            <button onclick="showPanel('Text')" class="tool-btn flex flex-col items-center gap-1 text-white/40">
-                <i class="fas fa-font text-lg"></i><span class="text-[10px] uppercase font-bold">Text</span>
+            <button onclick="showPanel('Text')" class="tool-btn flex flex-col items-center gap-1 text-white/40 transition">
+                <i class="fas fa-font text-lg"></i><span class="text-[9px] uppercase font-bold">Text</span>
             </button>
-            <button onclick="showPanel('Layout')" class="tool-btn flex flex-col items-center gap-1 text-white/40">
-                <i class="fas fa-layer-group text-lg"></i><span class="text-[10px] uppercase font-bold">Layout</span>
+            <button onclick="showPanel('Layout')" class="tool-btn flex flex-col items-center gap-1 text-white/40 transition">
+                <i class="fas fa-layer-group text-lg"></i><span class="text-[9px] uppercase font-bold">Layout</span>
             </button>
-            <button onclick="showPanel('Avatar')" class="tool-btn flex flex-col items-center gap-1 text-white/40">
-                <i class="fas fa-user-circle text-lg"></i><span class="text-[10px] uppercase font-bold">Avatar</span>
+            <button onclick="showPanel('Avatar')" class="tool-btn flex flex-col items-center gap-1 text-white/40 transition">
+                <i class="fas fa-user-circle text-lg"></i><span class="text-[9px] uppercase font-bold">Avatar</span>
             </button>
-            <button onclick="showPanel('Styles')" class="tool-btn flex flex-col items-center gap-1 text-white/40">
-                <i class="fas fa-palette text-lg"></i><span class="text-[10px] uppercase font-bold">Styles</span>
+            <button onclick="showPanel('Styles')" class="tool-btn flex flex-col items-center gap-1 text-white/40 transition">
+                <i class="fas fa-palette text-lg"></i><span class="text-[9px] uppercase font-bold">Styles</span>
             </button>
         </nav>
     </div>
 
-    <!-- Setup Modal (Code Same) -->
-    <div id="setupModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm hidden">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-fade-in text-center text-slate-900">
+    <!-- Setup Modal -->
+    <div id="setupModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 backdrop-blur-md hidden">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl animate-fade-in text-center text-slate-900">
             <div class="mb-6">
-                <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-user-edit text-indigo-600 text-2xl"></i>
-                </div>
-                <h2 class="text-xl font-bold">Welcome Studio</h2>
+                <h2 class="text-2xl font-bold tracking-tight">Setup Profile</h2>
+                <p class="text-slate-500 text-sm">Ye posters par dikhega</p>
             </div>
             <div class="space-y-4 mb-8">
                 <div class="relative w-24 h-24 mx-auto mb-4">
-                    <img id="setupPreview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full rounded-full object-cover border-4 border-indigo-50">
-                    <label class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full cursor-pointer shadow-lg"><i class="fas fa-plus text-xs"></i><input type="file" id="setupFile" class="hidden" accept="image/*"></label>
+                    <img id="setupPreview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full rounded-full object-cover border-4 border-indigo-100 bg-slate-50">
+                    <label class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full cursor-pointer shadow-lg border-2 border-white"><i class="fas fa-camera text-[10px]"></i><input type="file" id="setupFile" class="hidden" accept="image/*"></label>
                 </div>
-                <input type="text" id="setupName" placeholder="Aapka Naam" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none">
-                <input type="text" id="setupBio" placeholder="Profession" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none">
+                <input type="text" id="setupName" placeholder="Aapka Naam" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                <input type="text" id="setupBio" placeholder="Profession (e.g. Web Dev)" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 transition">
             </div>
-            <button onclick="saveInitialSetup()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg">Shuru Karein</button>
+            <button onclick="saveInitialSetup()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition">Start Creating</button>
         </div>
     </div>
 
     <script>
-        let currentUser = { name: "Creative Mind", bio: "Designer", pic: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" };
+        let currentUser = { name: "Creative Mind", bio: "Poster Designer", pic: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" };
         let selectedElement = null;
 
         const premiumGradients = [
             { name: "Night", style: "linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.2), transparent)" },
-            { name: "Ocean", style: "linear-gradient(to top, rgba(30,58,138,0.9), rgba(30,58,138,0.1), transparent)" },
-            { name: "Mesh", style: "radial-gradient(at bottom right, rgba(99,102,241,0.8), rgba(0,0,0,0.9))" },
-            { name: "Soft", style: "rgba(0,0,0,0.5)" },
-            { name: "Sunset", style: "radial-gradient(at bottom left, rgba(244,63,94,0.7), rgba(0,0,0,0.8))" }
+            { name: "Deep Ocean", style: "linear-gradient(to top, rgba(15,23,42,0.9), rgba(15,23,42,0.1), transparent)" },
+            { name: "Indigo Mesh", style: "radial-gradient(at bottom right, rgba(99,102,241,0.8), rgba(15,23,42,0.95))" },
+            { name: "Classic Soft", style: "rgba(0,0,0,0.5)" },
+            { name: "Rose Sunset", style: "radial-gradient(at bottom left, rgba(225,29,72,0.7), rgba(15,23,42,0.9))" },
+            { name: "Aurora", style: "linear-gradient(to top, #1e3a8a, #4338ca, transparent)" }
         ];
 
+        // Expanded Sample Images from Unsplash (Better Quality)
         const demoImages = [
             "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600",
             "https://images.unsplash.com/photo-1529139513402-e209979821ed?q=80&w=600",
             "https://images.unsplash.com/photo-1539109132314-34a77ad70327?q=80&w=600",
-            "https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=600"
+            "https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=600",
+            "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600",
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600",
+            "https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?q=80&w=600",
+            "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600",
+            "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?q=80&w=600",
+            "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=600"
         ];
 
         window.onload = () => {
@@ -268,11 +287,11 @@
             const box = document.getElementById('msgBox');
             box.innerText = text;
             box.style.display = 'block';
-            setTimeout(() => { box.style.display = 'none'; }, 3000);
+            setTimeout(() => { box.style.display = 'none'; }, 2500);
         }
 
         function loadUser() {
-            const saved = localStorage.getItem('ps_user_v3');
+            const saved = localStorage.getItem('ps_user_v4');
             if (saved) {
                 currentUser = JSON.parse(saved);
                 updateUI();
@@ -311,34 +330,40 @@
         });
 
         function saveInitialSetup() {
-            const name = document.getElementById('setupName').value;
-            if (!name) return showMessage("Naam likhein!");
+            const name = document.getElementById('setupName').value.trim();
+            if (!name) return showMessage("Naam enter karna zaruri hai!");
             currentUser.name = name;
-            currentUser.bio = document.getElementById('setupBio').value;
-            localStorage.setItem('ps_user_v3', JSON.stringify(currentUser));
+            currentUser.bio = document.getElementById('setupBio').value.trim();
+            localStorage.setItem('ps_user_v4', JSON.stringify(currentUser));
             updateUI();
             toggleSetupModal(false);
+            showMessage("Profile Updated!");
         }
 
         function initGallery() {
             const container = document.getElementById('masonryContainer');
-            demoImages.forEach(url => {
+            container.innerHTML = '';
+            
+            demoImages.forEach((url, index) => {
                 const div = document.createElement('div');
-                div.className = 'masonry-item opacity-0 animate-fade-in';
+                div.className = 'masonry-item animate-fade-in';
+                div.style.animationDelay = `${index * 100}ms`;
                 div.innerHTML = `
-                    <div class="relative group cursor-pointer overflow-hidden rounded-3xl bg-slate-800" onclick="openEditor('${url}')">
-                        <img src="${url}" class="w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition-opacity">
+                    <div class="relative group cursor-pointer overflow-hidden rounded-2xl bg-slate-900 border border-white/5" onclick="openEditor('${url}')">
+                        <img src="${url}" class="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-all duration-500 scale-100 group-hover:scale-105" loading="lazy">
+                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                 `;
                 container.appendChild(div);
             });
+            document.getElementById('loader').classList.add('hidden');
         }
 
         function initStyles() {
             const container = document.getElementById('bgSelectors');
             premiumGradients.forEach(grad => {
                 const btn = document.createElement('button');
-                btn.className = 'w-12 h-12 rounded-xl border-2 border-white/20 shrink-0';
+                btn.className = 'w-10 h-10 rounded-lg border-2 border-white/10 shrink-0 hover:scale-110 transition shadow-lg';
                 btn.style.background = grad.style;
                 btn.onclick = () => document.getElementById('canvasProfileOverlay').style.background = grad.style;
                 container.appendChild(btn);
@@ -350,6 +375,7 @@
             document.getElementById('editorModal').classList.remove('hidden');
             document.getElementById('dragContainer').innerHTML = '';
             showPanel('Text');
+            deselectAll();
         }
 
         function closeEditor() {
@@ -368,29 +394,36 @@
 
         function setTheme(align) {
             const overlay = document.getElementById('canvasProfileOverlay');
-            overlay.className = "absolute bottom-0 left-0 right-0 z-30 p-6 flex profile-overlay-gradient backdrop-blur-[2px]";
-            if (align === 'left') overlay.classList.add('flex-row', 'items-end', 'text-left');
-            else if (align === 'center') overlay.classList.add('flex-col', 'items-center', 'text-center');
-            else if (align === 'right') overlay.classList.add('flex-row-reverse', 'items-end', 'text-right');
+            overlay.className = "absolute bottom-0 left-0 right-0 z-30 p-6 flex profile-overlay-gradient backdrop-blur-[1px]";
+            overlay.style.alignItems = "";
+            overlay.style.flexDirection = "";
+            overlay.style.textAlign = "";
+            
+            if (align === 'left') overlay.classList.add('flex-row', 'items-end', 'text-left', 'gap-4');
+            else if (align === 'center') overlay.classList.add('flex-col', 'items-center', 'text-center', 'gap-2');
+            else if (align === 'right') overlay.classList.add('flex-row-reverse', 'items-end', 'text-right', 'gap-4');
         }
 
         function setShape(shape) {
-            document.getElementById('canvasAvatar').className = `w-16 h-16 object-cover border-2 border-white/50 shadow-lg ${shape}`;
+            document.getElementById('canvasAvatar').className = `w-14 h-14 object-cover border-2 border-white/50 shadow-lg ${shape}`;
         }
 
         function addNewText() {
-            const val = document.getElementById('textInput').value.trim();
+            const input = document.getElementById('textInput');
+            const val = input.value.trim();
             if (!val) return;
             const el = document.createElement('div');
-            el.className = 'draggable-element text-white drop-shadow-xl font-bold';
+            el.className = 'draggable-element text-white drop-shadow-2xl font-bold';
             el.innerText = val;
             el.style.fontSize = '28px';
-            el.style.top = '20%'; el.style.left = '10%';
+            el.style.top = '25%'; el.style.left = '10%';
+            el.style.fontFamily = "'Outfit', sans-serif";
+            
             el.onmousedown = (e) => { e.stopPropagation(); selectText(el); };
             el.ontouchstart = (e) => { e.stopPropagation(); selectText(el); };
             makeDraggable(el);
             document.getElementById('dragContainer').appendChild(el);
-            document.getElementById('textInput').value = '';
+            input.value = '';
             selectText(el);
         }
 
@@ -433,35 +466,58 @@
             let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
             el.onmousedown = (e) => { p3 = e.clientX; p4 = e.clientY; document.onmousemove = drag; document.onmouseup = stop; };
             el.ontouchstart = (e) => { p3 = e.touches[0].clientX; p4 = e.touches[0].clientY; document.ontouchmove = dragT; document.ontouchend = stop; };
+            
             function drag(e) { p1 = p3 - e.clientX; p2 = p4 - e.clientY; p3 = e.clientX; p4 = e.clientY; el.style.top = (el.offsetTop - p2) + "px"; el.style.left = (el.offsetLeft - p1) + "px"; }
-            function dragT(e) { e.preventDefault(); const t = e.touches[0]; p1 = p3 - t.clientX; p2 = p4 - t.clientY; p3 = t.clientX; p4 = t.clientY; el.style.top = (el.offsetTop - p2) + "px"; el.style.left = (el.offsetLeft - p1) + "px"; }
+            function dragT(e) { 
+                if(e.cancelable) e.preventDefault(); 
+                const t = e.touches[0]; 
+                p1 = p3 - t.clientX; p2 = p4 - t.clientY; p3 = t.clientX; p4 = t.clientY; 
+                el.style.top = (el.offsetTop - p2) + "px"; el.style.left = (el.offsetLeft - p1) + "px"; 
+            }
             function stop() { document.onmousemove = null; document.ontouchmove = null; }
         }
 
         async function downloadPoster(scale) {
             deselectAll();
             const btn = event.currentTarget;
-            btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin"></i>';
+            btn.disabled = true;
+
             try {
-                const canvas = await html2canvas(document.getElementById('captureArea'), { scale: scale, useCORS: true, scrollY: -window.scrollY });
+                const canvas = await html2canvas(document.getElementById('captureArea'), { 
+                    scale: scale, 
+                    useCORS: true, 
+                    scrollY: -window.scrollY,
+                    backgroundColor: null
+                });
                 const link = document.createElement('a');
-                link.download = `poster-${Date.now()}.png`;
+                link.download = `studio-poster-${Date.now()}.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
-                showMessage("Poster Save Ho Gaya!");
-            } catch(e) { showMessage("Error!"); }
-            btn.innerHTML = scale > 2 ? '<i class="fas fa-crown"></i> HD' : '<i class="fas fa-download"></i> SD';
+                showMessage("Saved successfully!");
+            } catch(e) { 
+                showMessage("Download failed. Use Share instead."); 
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
         }
 
         async function sharePoster() {
             try {
-                const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 2, useCORS: true });
+                const canvas = await html2canvas(document.getElementById('captureArea'), { scale: 2.5, useCORS: true });
                 canvas.toBlob(async blob => {
                     const file = new File([blob], 'poster.png', { type: 'image/png' });
-                    if (navigator.share) await navigator.share({ files: [file] });
-                    else showMessage("Sharing not supported");
+                    if (navigator.share) {
+                        await navigator.share({ title: 'Poster Studio Creation', files: [file] });
+                    } else {
+                        showMessage("Sharing not supported");
+                    }
                 });
-            } catch(e) { showMessage("Error!"); }
+            } catch(e) { 
+                showMessage("Error sharing!"); 
+            }
         }
     </script>
 </body>
