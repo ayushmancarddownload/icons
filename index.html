@@ -1,182 +1,591 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GameWorld - Play the Best Online Games</title>
-  <meta name="description" content="Play the best online games for free on GameWorld. Explore action, puzzle, racing, and adventure games.">
-  <meta name="keywords" content="online games, free games, puzzle, racing, action, adventure">
-  <meta name="author" content="GameWorld">
-  <meta property="og:title" content="GameWorld - Play the Best Online Games">
-  <meta property="og:description" content="Enjoy the most exciting online games on GameWorld. Free and fun games for everyone!">
-  <meta property="og:image" content="https://example.com/gameworld-thumbnail.jpg">
-  <meta property="og:url" content="https://example.com">
-  <link rel="icon" type="image/png" href="favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poster Studio Pro | Creative Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Pacifico&family=Outfit:wght@300;400;700&family=Zeyada&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --surface: #ffffff;
+            --background: #f8fafc;
+        }
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #121212;
-      color: #e4e4e4;
-      overflow-x: hidden;
-    }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--background);
+            color: #1e293b;
+        }
 
-    #particle-canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-    }
+        /* Pinterest Masonry Layout */
+        .masonry-grid {
+            columns: 2;
+            column-gap: 1rem;
+            padding: 1rem;
+        }
+        @media (min-width: 768px) { .masonry-grid { columns: 3; } }
+        @media (min-width: 1024px) { .masonry-grid { columns: 4; } }
+        @media (min-width: 1280px) { .masonry-grid { columns: 5; } }
 
-    .website-name {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #ff5722;
-    }
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 1rem;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .masonry-item:hover {
+            transform: scale(1.02);
+        }
 
-    .game-container iframe {
-      width: 100%;
-      height: 400px;
-      border-radius: 10px;
-      border: 0;
-    }
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
 
-    .game-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.5);
-    }
+        /* Custom Shapes */
+        .shape-hexagon { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .shape-rhombus { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .shape-squircle { border-radius: 30%; }
 
-    /* Updated link hover effect */
-    .nav-link, footer a {
-      transition: color 0.3s ease-in-out, text-decoration 0.3s;
-    }
+        /* Draggable Text Styling */
+        .draggable-element {
+            cursor: move;
+            position: absolute;
+            user-select: none;
+            touch-action: none;
+            padding: 8px;
+            border: 1px solid transparent;
+        }
+        .draggable-element:active { border: 1px dashed rgba(255,255,255,0.5); }
 
-    .nav-link:hover, footer a:hover {
-      color: #ff5722 !important;
-      text-decoration: underline;
-    }
-  </style>
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .profile-overlay-gradient {
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+        }
+    </style>
 </head>
+<body class="overflow-x-hidden">
 
-<body>
-  <canvas id="particle-canvas"></canvas>
+    <!-- Setup Modal (First Time Only) -->
+    <div id="setupModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl animate-fade-in text-center">
+            <div class="mb-6">
+                <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-magic text-indigo-600 text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">Create Your Profile</h2>
+                <p class="text-slate-500">Personalize your posters automatically</p>
+            </div>
+            
+            <div class="relative w-28 h-28 mx-auto mb-6 group">
+                <img id="setupPreview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full rounded-full object-cover border-4 border-indigo-50 px-1">
+                <label class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full cursor-pointer shadow-lg hover:bg-indigo-700 transition">
+                    <i class="fas fa-camera text-xs"></i>
+                    <input type="file" id="setupFile" class="hidden" accept="image/*">
+                </label>
+            </div>
 
-  <nav class="navbar navbar-dark bg-dark navbar-expand-lg p-3">
-    <div class="container">
-      <a class="navbar-brand website-name" href="#">GameWorld</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link text-light" href="#">Puzzle</a></li>
-          <li class="nav-item"><a class="nav-link text-light" href="#">Racing</a></li>
-          <li class="nav-item"><a class="nav-link text-light" href="#">Action</a></li>
-          <li class="nav-item"><a class="nav-link text-light" href="#">Adventure</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+            <div class="space-y-4 mb-8">
+                <input type="text" id="setupName" placeholder="Your Name" class="w-full px-5 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                <input type="text" id="setupBio" placeholder="Profession (e.g. Creator)" class="w-full px-5 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+            </div>
 
-  <div class="text-center bg-danger text-white py-3">
-    Advertise your game here! Contact us for details.
-  </div>
-
-  <div class="container my-4 text-center">
-    <div class="game-container p-3 bg-dark rounded">
-      <iframe src="https://htmlxm.github.io/h3/tag/" title="Game"></iframe>
-    </div>
-    <div class="game-details bg-secondary p-4 mt-4 rounded">
-      <h2 class="text-warning">Fast Track Racer</h2>
-      <p>Dive into the world of endless racing! Challenge your friends, conquer tracks, and unlock new levels with stunning visuals.</p>
-    </div>
-  </div>
-
-  <div class="container my-5">
-    <h3 class="text-center text-warning">Other Games You Might Like</h3>
-    <div class="row row-cols-2 row-cols-md-4 g-4 mt-3">
-      <div class="col">
-        <div class="game-card text-center bg-dark p-3 rounded">
-          <img src="https://via.placeholder.com/140" class="img-fluid rounded" alt="Game 1">
-          <p class="mt-2">Game 1</p>
+            <button onclick="saveInitialSetup()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Start Creating</button>
         </div>
-      </div>
-      <div class="col">
-        <div class="game-card text-center bg-dark p-3 rounded">
-          <img src="https://via.placeholder.com/140" class="img-fluid rounded" alt="Game 2">
-          <p class="mt-2">Game 2</p>
-        </div>
-      </div>
-      <div class="col">
-        <div class="game-card text-center bg-dark p-3 rounded">
-          <img src="https://via.placeholder.com/140" class="img-fluid rounded" alt="Game 3">
-          <p class="mt-2">Game 3</p>
-        </div>
-      </div>
-      <div class="col">
-        <div class="game-card text-center bg-dark p-3 rounded">
-          <img src="https://via.placeholder.com/140" class="img-fluid rounded" alt="Game 4">
-          <p class="mt-2">Game 4</p>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <footer class="bg-dark text-center text-light py-4 mt-4">
-    <a href="#" class="text-light mx-2">About</a>
-    <a href="#" class="text-light mx-2">Terms of Use</a>
-    <a href="#" class="text-light mx-2">Privacy Policy</a>
-    <a href="#" class="text-light mx-2">Contact</a>
-  </footer>
+    <!-- Main Navigation -->
+    <nav class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gradient-to-tr from-rose-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-palette text-white text-sm"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight text-slate-800 hidden sm:block">Poster Studio</span>
+            </div>
 
-  <script>
-    const canvas = document.getElementById("particle-canvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const particlesArray = [];
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 4 + 1;
-        this.speedX = Math.random() * 3 - 1.5;
-        this.speedY = Math.random() * 3 - 1.5;
-      }
-      update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        if (this.x > canvas.width || this.x < 0) this.x = Math.random() * canvas.width;
-        if (this.y > canvas.height || this.y < 0) this.y = Math.random() * canvas.height;
-      }
-      draw() {
-        ctx.fillStyle = "rgba(255, 87, 34, 0.8)";
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    function initParticles() {
-      for (let i = 0; i < 100; i++) {
-        particlesArray.push(new Particle());
-      }
-    }
-    function animateParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesArray.forEach(particle => {
-        particle.update();
-        particle.draw();
-      });
-      requestAnimationFrame(animateParticles);
-    }
-    initParticles();
-    animateParticles();
-  </script>
+            <div class="flex-1 max-w-md mx-8 hidden md:block">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" placeholder="Search templates..." class="w-full pl-11 pr-4 py-2 bg-slate-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                </div>
+            </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSetupModal(true)" class="flex items-center gap-2 group">
+                    <span id="navName" class="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition"></span>
+                    <img id="navPic" src="" class="w-9 h-9 rounded-full border-2 border-slate-100 group-hover:border-indigo-200 transition">
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Gallery Feed -->
+    <main class="max-w-7xl mx-auto pb-24">
+        <div id="masonryContainer" class="masonry-grid">
+            <!-- Items injected by JS -->
+        </div>
+        
+        <div id="loader" class="flex flex-col items-center py-10 opacity-0 transition-opacity duration-500">
+            <div class="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-slate-400 text-sm mt-3 font-medium">Loading magic...</p>
+        </div>
+    </main>
+
+    <!-- Poster Editor (Full Screen Modal) -->
+    <div id="editorModal" class="fixed inset-0 z-50 bg-slate-900 flex flex-col md:flex-row hidden overflow-hidden">
+        <!-- Close button (Mobile) -->
+        <button onclick="closeEditor()" class="absolute top-4 left-4 z-[60] bg-white/20 backdrop-blur-md text-white w-10 h-10 rounded-full flex items-center justify-center md:hidden">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Sidebar / Toolset -->
+        <aside class="w-full md:w-80 lg:w-96 bg-white flex flex-col order-2 md:order-1 h-1/2 md:h-full overflow-y-auto">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-bold text-lg">Editor Tools</h3>
+                <button onclick="closeEditor()" class="hidden md:flex text-slate-400 hover:text-rose-500 transition">
+                    <i class="fas fa-times-circle text-2xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-8">
+                <!-- Text Tool -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Add Content</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="textInput" placeholder="Enter text..." class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-indigo-500">
+                        <button onclick="addNewText()" class="bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700 transition">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Theme / Layout -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Profile Theme</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setTheme('left')" class="p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-indigo-500 transition">
+                            <i class="fas fa-align-left text-slate-600"></i>
+                        </button>
+                        <button onclick="setTheme('center')" class="p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-indigo-500 transition">
+                            <i class="fas fa-align-center text-slate-600"></i>
+                        </button>
+                        <button onclick="setTheme('right')" class="p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-indigo-500 transition">
+                            <i class="fas fa-align-right text-slate-600"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Profile Shape -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Avatar Style</label>
+                    <div class="flex gap-4">
+                        <button onclick="setShape('rounded-full')" class="w-10 h-10 rounded-full border-2 border-indigo-500 bg-slate-100"></button>
+                        <button onclick="setShape('rounded-xl')" class="w-10 h-10 rounded-xl border-2 border-slate-200 bg-slate-100"></button>
+                        <button onclick="setShape('shape-hexagon')" class="w-10 h-10 shape-hexagon border-2 border-slate-200 bg-slate-100"></button>
+                    </div>
+                </div>
+
+                <!-- Background Overlays -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Card Background</label>
+                    <div class="flex gap-2 overflow-x-auto pb-2" id="bgSelectors">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Actions -->
+            <div class="mt-auto p-6 bg-slate-50 border-t border-slate-200 space-y-3">
+                <button onclick="sharePoster()" class="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-100 transition">
+                    <i class="fas fa-share-nodes"></i> Share
+                </button>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="downloadPoster(1)" class="bg-indigo-50 text-indigo-700 py-3 rounded-xl font-bold text-sm hover:bg-indigo-100 transition">SD Download</button>
+                    <button onclick="downloadPoster(3)" class="bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-indigo-700 transition">HD Quality</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Editor Canvas Area -->
+        <section class="flex-1 bg-slate-800 p-4 md:p-12 flex items-center justify-center order-1 md:order-2">
+            <div id="captureArea" class="relative w-full max-w-[400px] aspect-[4/5] bg-white shadow-2xl rounded-2xl overflow-hidden">
+                <!-- Main Image -->
+                <img id="canvasMainImage" src="" class="w-full h-full object-cover pointer-events-none" crossorigin="anonymous">
+                
+                <!-- Draggable Elements Container -->
+                <div id="dragContainer" class="absolute inset-0 z-20">
+                    <!-- Texts added here -->
+                </div>
+
+                <!-- Footer Profile Overlay -->
+                <div id="canvasProfileOverlay" class="absolute bottom-0 left-0 right-0 z-30 p-5 flex items-end gap-3 profile-overlay-gradient transition-all duration-300">
+                    <div id="canvasAvatarContainer" class="relative">
+                        <img id="canvasAvatar" src="" class="w-14 h-14 object-cover border-2 border-white shadow-md transition-all duration-300">
+                        <div class="absolute -bottom-1 -right-1 bg-amber-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[8px] border-2 border-white">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 pb-1">
+                        <h4 id="canvasName" class="text-white font-bold text-lg leading-tight"></h4>
+                        <p id="canvasBio" class="text-white/80 text-xs"></p>
+                    </div>
+                    <div class="text-right pb-1 opacity-40">
+                        <span class="text-[8px] text-white font-medium uppercase tracking-widest block">Created via</span>
+                        <span id="domainTag" class="text-[10px] text-white font-bold">POSTERSTUDIO</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 md:hidden glass-panel border-t border-slate-100">
+        <div class="flex justify-around items-center h-16">
+            <button class="flex flex-col items-center gap-1 text-indigo-600">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-[10px] font-bold">Feed</span>
+            </button>
+            <button onclick="toggleSetupModal(true)" class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-user-circle text-lg"></i>
+                <span class="text-[10px] font-medium">Profile</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-compass text-lg"></i>
+                <span class="text-[10px] font-medium">Explore</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        /**
+         * CONFIG & STATE
+         */
+        let currentUser = {
+            name: "New Creator",
+            bio: "Content Designer",
+            pic: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+        };
+
+        const overlayGradients = [
+            "linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2), transparent)",
+            "linear-gradient(to top, rgba(99,102,241,0.8), rgba(0,0,0,0.2), transparent)",
+            "linear-gradient(to top, rgba(244,63,94,0.8), rgba(0,0,0,0.2), transparent)",
+            "linear-gradient(to top, rgba(16,185,129,0.8), rgba(0,0,0,0.2), transparent)",
+            "rgba(0,0,0,0.4)"
+        ];
+
+        const demoImages = [
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600",
+            "https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=600",
+            "https://images.unsplash.com/photo-1529139513402-e209979821ed?q=80&w=600",
+            "https://images.unsplash.com/photo-1539109132314-34a77ad70327?q=80&w=600",
+            "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600",
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600",
+            "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=600",
+            "https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?q=80&w=600",
+            "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=600",
+            "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?q=80&w=600"
+        ];
+
+        /**
+         * INITIALIZATION
+         */
+        window.onload = () => {
+            loadUser();
+            initGallery();
+            initEditorOptions();
+            document.getElementById('domainTag').innerText = window.location.hostname.split('.')[0].toUpperCase() || 'POSTERSTUDIO';
+            
+            // Scroll listener for loader
+            window.addEventListener('scroll', () => {
+                const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+                if (scrollTop + clientHeight >= scrollHeight - 50) {
+                    showLoader();
+                    setTimeout(initGallery, 800);
+                }
+            });
+        };
+
+        function loadUser() {
+            const saved = localStorage.getItem('ps_user');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                updateUIWithUser();
+            } else {
+                toggleSetupModal(true);
+            }
+        }
+
+        function updateUIWithUser() {
+            document.getElementById('navName').innerText = currentUser.name;
+            document.getElementById('navPic').src = currentUser.pic;
+            document.getElementById('canvasName').innerText = currentUser.name;
+            document.getElementById('canvasBio').innerText = currentUser.bio;
+            document.getElementById('canvasAvatar').src = currentUser.pic;
+        }
+
+        function toggleSetupModal(show) {
+            const modal = document.getElementById('setupModal');
+            if (show) {
+                modal.classList.remove('hidden');
+                document.getElementById('setupName').value = currentUser.name;
+                document.getElementById('setupBio').value = currentUser.bio;
+                document.getElementById('setupPreview').src = currentUser.pic;
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('setupFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('setupPreview').src = ev.target.result;
+                    currentUser.pic = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function saveInitialSetup() {
+            const name = document.getElementById('setupName').value;
+            const bio = document.getElementById('setupBio').value;
+            if (!name) return alert("Please enter your name");
+            
+            currentUser.name = name;
+            currentUser.bio = bio;
+            localStorage.setItem('ps_user', JSON.stringify(currentUser));
+            updateUIWithUser();
+            toggleSetupModal(false);
+        }
+
+        /**
+         * GALLERY ENGINE
+         */
+        function initGallery() {
+            const container = document.getElementById('masonryContainer');
+            // Shuffle and add demo items
+            const pool = [...demoImages].sort(() => Math.random() - 0.5);
+            
+            pool.forEach(url => {
+                const div = document.createElement('div');
+                div.className = 'masonry-item opacity-0';
+                div.innerHTML = `
+                    <div class="relative group cursor-pointer overflow-hidden rounded-2xl bg-slate-200">
+                        <img src="${url}" class="w-full h-auto object-cover" loading="lazy">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                            <button onclick="openEditor('${url}')" class="bg-white text-slate-900 px-4 py-2 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition">
+                                Edit Poster
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+                
+                // Staggered entry
+                setTimeout(() => {
+                    div.classList.remove('opacity-0');
+                    div.classList.add('animate-fade-in');
+                }, Math.random() * 500);
+            });
+            hideLoader();
+        }
+
+        function showLoader() { document.getElementById('loader').style.opacity = '1'; }
+        function hideLoader() { document.getElementById('loader').style.opacity = '0'; }
+
+        /**
+         * EDITOR LOGIC
+         */
+        function openEditor(imgUrl) {
+            document.getElementById('canvasMainImage').src = imgUrl;
+            document.getElementById('editorModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Reset canvas
+            document.getElementById('dragContainer').innerHTML = '';
+            setTheme('left');
+            setShape('rounded-full');
+        }
+
+        function closeEditor() {
+            document.getElementById('editorModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function initEditorOptions() {
+            const container = document.getElementById('bgSelectors');
+            overlayGradients.forEach((grad, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'flex-shrink-0 w-12 h-12 rounded-lg border-2 border-white shadow-sm';
+                btn.style.background = grad;
+                btn.onclick = () => {
+                    document.getElementById('canvasProfileOverlay').style.background = grad;
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function setTheme(align) {
+            const overlay = document.getElementById('canvasProfileOverlay');
+            if (align === 'left') {
+                overlay.style.flexDirection = 'row';
+                overlay.style.textAlign = 'left';
+            } else if (align === 'center') {
+                overlay.style.flexDirection = 'column';
+                overlay.style.alignItems = 'center';
+                overlay.style.textAlign = 'center';
+            } else if (align === 'right') {
+                overlay.style.flexDirection = 'row-reverse';
+                overlay.style.textAlign = 'right';
+            }
+        }
+
+        function setShape(shapeClass) {
+            const avatar = document.getElementById('canvasAvatar');
+            avatar.className = `w-14 h-14 object-cover border-2 border-white shadow-md transition-all duration-300 ${shapeClass}`;
+        }
+
+        /**
+         * DRAGGABLE TEXT SYSTEM
+         */
+        function addNewText() {
+            const input = document.getElementById('textInput');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const el = document.createElement('div');
+            el.className = 'draggable-element text-white font-bold text-2xl drop-shadow-lg';
+            el.style.fontFamily = "'Playfair Display', serif";
+            el.innerText = val;
+            el.style.top = '20%';
+            el.style.left = '10%';
+            
+            // Double click to remove
+            el.ondblclick = () => el.remove();
+            
+            makeDraggable(el);
+            document.getElementById('dragContainer').appendChild(el);
+            input.value = '';
+        }
+
+        function makeDraggable(el) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            
+            // Desktop
+            el.onmousedown = dragMouseDown;
+            
+            // Mobile Touch
+            el.ontouchstart = (e) => {
+                const touch = e.touches[0];
+                dragMouseDown({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => {} });
+            };
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.ontouchend = closeDragElement;
+                document.onmousemove = elementDrag;
+                document.ontouchmove = (ev) => {
+                    const t = ev.touches[0];
+                    elementDrag({ clientX: t.clientX, clientY: t.clientY, preventDefault: () => {} });
+                };
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                el.style.top = (el.offsetTop - pos2) + "px";
+                el.style.left = (el.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+                document.ontouchend = null;
+                document.ontouchmove = null;
+            }
+        }
+
+        /**
+         * EXPORT & SHARE
+         */
+        async function downloadPoster(scaleFactor) {
+            const area = document.getElementById('captureArea');
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i> Processing...';
+            btn.disabled = true;
+
+            try {
+                const canvas = await html2canvas(area, {
+                    scale: scaleFactor,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: null
+                });
+                
+                const link = document.createElement('a');
+                link.download = `poster-studio-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                console.error(err);
+                alert("Download failed. CORS issues might exist with external images.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function sharePoster() {
+            const area = document.getElementById('captureArea');
+            const canvas = await html2canvas(area, { scale: 2, useCORS: true });
+            
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], 'poster.png', { type: 'image/png' });
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'My Creative Poster',
+                            files: [file]
+                        });
+                    } catch (err) {
+                        console.log("Share cancelled");
+                    }
+                } else {
+                    alert("Sharing not supported in this browser. Please download instead.");
+                }
+            });
+        }
+    </script>
 </body>
-
 </html>
