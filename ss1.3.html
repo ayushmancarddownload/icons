@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Poster Studio Pro | Pure Performance</title>
+    <!-- Core Assets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Playfair+Display:wght@700&family=Bebas+Neue&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Variables for Lightning Fast Theming */
+        :root {
+            --bg-dark: #020617;
+            --surface: #0f172a;
+            --surface-light: #1e293b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --white: #ffffff;
+            --dynamic-1: #0f172a;
+            --dynamic-2: #334155;
+            --radius-xl: 24px;
+            --radius-md: 12px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Reset & Base */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Typography */
+        h1, h2, h3 { letter-spacing: -0.02em; }
+        .font-bebas { font-family: 'Bebas Neue', sans-serif; }
+
+        /* Navigation */
+        nav {
+            height: 64px;
+            background: var(--surface);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 40;
+        }
+
+        .logo-box { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { 
+            width: 36px; height: 36px; background: var(--accent); 
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        }
+
+        .user-trigger {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 100px;
+            padding: 4px 12px 4px 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .user-trigger:hover { background: rgba(255,255,255,0.1); }
+        .user-trigger img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+        .user-trigger span { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); }
+
+        /* Gallery System */
+        .gallery-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: #010409;
+        }
+        .masonry {
+            column-count: 2;
+            column-gap: 16px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        @media (min-width: 768px) { .masonry { column-count: 3; } }
+        @media (min-width: 1024px) { .masonry { column-count: 4; } }
+
+        .m-item {
+            break-inside: avoid;
+            margin-bottom: 16px;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: transform 0.4s ease;
+            animation: fadeIn 0.6s ease forwards;
+        }
+        .m-item:hover { transform: translateY(-5px); }
+        .m-item img { width: 100%; display: block; transition: 0.5s ease; }
+        .m-item:hover img { transform: scale(1.05); }
+
+        /* Editor Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            overflow: hidden; /* Popup scrolling band kar di */
+        }
+        .modal.active { display: flex; }
+
+        .modal-header {
+            height: 56px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            flex-shrink: 0;
+        }
+
+        /* Canvas Area - Content fix kiya gaya hai */
+        #viewport {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background: #000;
+            overflow: hidden; /* Image scrolling hta di */
+        }
+
+        #captureArea {
+            width: 100%;
+            max-width: 260px; /* Width aur km kar di */
+            background: var(--bg-dark);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        #imagePart { position: relative; width: 100%; overflow: hidden; }
+        #canvasMainImage { width: 100%; height: auto; display: block; max-height: 50vh; object-fit: contain; }
+        
+        #dragContainer { position: absolute; inset: 0; z-index: 10; }
+        .draggable {
+            position: absolute;
+            cursor: move;
+            touch-action: none;
+            padding: 4px 8px;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            user-select: none;
+            font-weight: 700;
+        }
+        .draggable.selected {
+            border: 2px dashed var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Branding Overlay */
+        #brandOverlay {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            z-index: 20;
+        }
+        .brand-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            object-fit: cover; border: 2px solid rgba(255,255,255,0.2);
+        }
+        .brand-content { margin-left: 8px; flex: 1; overflow: hidden; }
+        .brand-name { font-size: 11px; font-weight: 800; color: #fff; line-height: 1.2; }
+        .brand-bio { font-size: 7px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+        /* Banner Ad Styling */
+        .banner-ad-container {
+            width: 100%;
+            background: #000;
+            padding: 6px 0;
+            display: flex;
+            justify-content: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            flex-shrink: 0;
+        }
+        .ad-placeholder {
+            width: 300px;
+            height: 50px;
+            background: linear-gradient(90deg, #1e293b, #0f172a);
+            border: 1px dashed rgba(255,255,255,0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.25);
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Toolbar - UI fixed aur compact */
+        .toolbar {
+            background: var(--surface);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 0 12px;
+            flex-shrink: 0;
+        }
+        .tool-nav {
+            display: flex;
+            justify-content: space-around;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+        .tool-btn {
+            background: none; border: none; color: var(--text-dim);
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; cursor: pointer; font-size: 8px; font-weight: 800;
+            text-transform: uppercase; transition: var(--transition);
+        }
+        .tool-btn.active { color: var(--white); }
+        .tool-btn i { font-size: 15px; }
+
+        /* Sub Panels */
+        .tool-panel {
+            background: rgba(0,0,0,0.3);
+            margin: 0 12px 6px;
+            padding: 10px;
+            border-radius: var(--radius-md);
+            display: none;
+        }
+        .tool-panel.active { display: block; animation: slideUp 0.3s ease; }
+
+        .flex-row { display: flex; gap: 8px; }
+        input[type="text"] {
+            flex: 1; background: var(--surface-light); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; padding: 8px; border-radius: 8px; outline: none; font-size: 12px;
+        }
+        .btn-primary { background: var(--accent); color: #fff; padding: 0 14px; border-radius: 8px; border: none; font-weight: 700; font-size: 11px; }
+
+        /* Animation */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Setup Modal */
+        #setupModal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .setup-card {
+            background: var(--white); color: var(--bg-dark); width: 100%; max-width: 340px;
+            padding: 28px; border-radius: 28px; text-align: center;
+        }
+        .setup-avatar-wrap {
+            position: relative; width: 90px; height: 90px; margin: 0 auto 20px;
+        }
+        #setupPreview { width: 100%; height: 100%; border-radius: 26px; object-fit: cover; background: #eee; }
+        .cam-btn {
+            position: absolute; bottom: -5px; right: -5px; background: var(--accent);
+            color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; border: 3px solid #fff;
+        }
+
+        /* Message Box */
+        #msg {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--white); color: var(--bg-dark); padding: 8px 20px;
+            border-radius: 100px; font-weight: 700; font-size: 12px; z-index: 1000;
+            display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        /* Themes */
+        .theme-swatch { width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); }
+        .theme-list { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+        
+        /* Utils */
+        .hidden { display: none !important; }
+        .export-btn { 
+            background: var(--accent); border: none; color: #fff; 
+            padding: 5px 10px; border-radius: 6px; font-size: 9px; font-weight: 800; cursor: pointer;
+        }
+        .export-btn.hd { background: var(--white); color: var(--bg-dark); margin-left: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="msg">Message here</div>
+
+    <nav>
+        <div class="logo-box">
+            <div class="logo-icon"><i class="fas fa-bolt text-white"></i></div>
+            <h2 style="font-size: 14px; text-transform: uppercase;">Studio <span style="color:var(--accent)">Pro</span></h2>
+        </div>
+        <div class="user-trigger" onclick="openSetup()">
+            <img id="navAvatar" src="">
+            <span id="navName">User</span>
+        </div>
+    </nav>
+
+    <main class="gallery-container">
+        <div class="masonry" id="masonry">
+            <!-- Items injected by JS -->
+        </div>
+    </main>
+
+    <!-- Editor -->
+    <div id="editor" class="modal">
+        <header class="modal-header">
+            <button onclick="closeModalManually()" style="background:none; border:none; color:var(--text-dim); cursor:pointer;"><i class="fas fa-times fa-lg"></i></button>
+            <div>
+                <button class="export-btn" onclick="savePoster(2)">SD</button>
+                <button class="export-btn hd" onclick="savePoster(4)">HD PRO</button>
+            </div>
+        </header>
+
+        <div id="viewport" onclick="deselectAll()">
+            <!-- Poster area fixed size -->
+            <div id="captureArea" onclick="event.stopPropagation()">
+                <div id="imagePart">
+                    <img id="canvasMainImage" src="" crossorigin="anonymous">
+                    <div id="dragContainer"></div>
+                </div>
+                <div id="brandOverlay">
+                    <img id="brandAvatar" src="" class="brand-avatar">
+                    <div class="brand-content">
+                        <div id="brandName" class="brand-name">Name</div>
+                        <div id="brandBio" class="brand-bio">Bio</div>
+                    </div>
+                    <div style="opacity:0.3; font-size:7px; font-weight:900;">PRO STUDIO</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner Ad Section -->
+        <div class="banner-ad-container">
+            <div class="ad-placeholder">
+                <i class="fas fa-ad" style="margin-right:8px;"></i> Advertisement Banner
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <!-- Panels -->
+            <div id="panelText" class="tool-panel">
+                <div class="flex-row">
+                    <input type="text" id="textInput" placeholder="Write something...">
+                    <button class="btn-primary" onclick="addText()">ADD</button>
+                </div>
+                <div id="textControls" class="hidden" style="margin-top:8px; display:flex; gap:10px; align-items:center;">
+                    <input type="color" id="textColor" oninput="updateStyle()" style="width:20px; height:20px; border:none; background:none;">
+                    <input type="range" id="textSize" min="10" max="80" oninput="updateStyle()" style="flex:1;">
+                    <button onclick="deleteText()" style="background:none; border:none; color:#ef4444;"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+
+            <div id="panelStyle" class="tool-panel">
+                <div class="theme-list" id="themeList"></div>
+            </div>
+
+            <div id="panelLayout" class="tool-panel">
+                <div class="flex-row" style="justify-content:center; gap:12px;">
+                    <button onclick="setLayout('left')" class="tool-btn"><i class="fas fa-align-left"></i>LEFT</button>
+                    <button onclick="setLayout('center')" class="tool-btn"><i class="fas fa-align-center"></i>CENTER</button>
+                    <button onclick="setLayout('right')" class="tool-btn"><i class="fas fa-align-right"></i>RIGHT</button>
+                </div>
+            </div>
+
+            <nav class="tool-nav">
+                <button class="tool-btn" onclick="showPanel('Text')"><i class="fas fa-font"></i>TEXT</button>
+                <button class="tool-btn" onclick="showPanel('Layout')"><i class="fas fa-layer-group"></i>LAYOUT</button>
+                <button class="tool-btn" onclick="showPanel('Style')"><i class="fas fa-palette"></i>STYLE</button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Setup -->
+    <div id="setupModal">
+        <div class="setup-card">
+            <h2 style="text-transform:uppercase; margin-bottom:5px; font-size: 18px;">Brand Identity</h2>
+            <p style="font-size:11px; color:#666; margin-bottom:18px;">Poster ke niche ka signature set karein.</p>
+            
+            <div class="setup-avatar-wrap">
+                <img id="setupPreview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky">
+                <label class="cam-btn">
+                    <i class="fas fa-camera" style="font-size: 10px;"></i>
+                    <input type="file" id="fileInput" class="hidden" accept="image/*">
+                </label>
+            </div>
+
+            <input type="text" id="setupName" placeholder="Your Name" style="background:#f1f5f9; color:#000; margin-bottom:10px; width:100%; border:none; padding: 12px; border-radius: 12px;">
+            <input type="text" id="setupBio" placeholder="Tagline" style="background:#f1f5f9; color:#000; margin-bottom:20px; width:100%; border:none; padding: 12px; border-radius: 12px;">
+            
+            <button class="btn-primary" onclick="saveUser()" style="width:100%; padding:14px; border-radius:14px;">SAVE IDENTITY</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = { name: "Creator", bio: "Visual Designer", pic: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky" };
+        let selectedEl = null;
+
+        const imgAssets = [
+            "https://images.unsplash.com/photo-1529139513402-e209979821ed?q=80&w=600",
+            "https://images.unsplash.com/photo-1539109132314-34a77ad70327?q=80&w=600",
+            "https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=600",
+            "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600",
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600",
+            "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?q=80&w=600",
+            "https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=600",
+            "https://images.unsplash.com/photo-1523381235312-3a1647fa9917?q=80&w=600",
+            "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?q=80&w=600",
+            "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=600"
+        ];
+
+        const themes = [
+            { n: 'Dark', v: '#0f172a' },
+            { n: 'Indigo', v: 'linear-gradient(135deg, #1e1b4b, #4338ca)' },
+            { n: 'Night', v: '#000000' },
+            { n: 'Sunset', v: 'linear-gradient(135deg, #4c0519, #be123c)' },
+            { n: 'Forest', v: 'linear-gradient(135deg, #064e3b, #059669)' },
+            { n: 'Glass', v: 'rgba(255,255,255,0.05)' }
+        ];
+
+        window.onload = () => {
+            const saved = localStorage.getItem('ps_user_raw');
+            if(saved) {
+                currentUser = JSON.parse(saved);
+                updateUI();
+            } else {
+                openSetup();
+            }
+            initGallery();
+            initThemes();
+        };
+
+        window.onpopstate = function(event) {
+            document.getElementById('editor').classList.remove('active');
+            document.getElementById('setupModal').style.display = 'none';
+        };
+
+        function closeModalManually() {
+            history.back();
+        }
+
+        function showMsg(t) {
+            const m = document.getElementById('msg');
+            m.innerText = t; m.style.display = 'block';
+            setTimeout(() => m.style.display = 'none', 2000);
+        }
+
+        function initGallery() {
+            const container = document.getElementById('masonry');
+            const shuffled = [...imgAssets].sort(() => 0.5 - Math.random());
+            shuffled.forEach(url => {
+                const div = document.createElement('div');
+                div.className = 'm-item';
+                div.onclick = () => openEditor(url);
+                div.innerHTML = `<img src="${url}" loading="lazy">`;
+                container.appendChild(div);
+            });
+        }
+
+        function initThemes() {
+            const list = document.getElementById('themeList');
+            themes.forEach(t => {
+                const div = document.createElement('div');
+                div.className = 'theme-swatch';
+                div.style.background = t.v;
+                div.onclick = () => {
+                    document.getElementById('brandOverlay').style.background = t.v;
+                    showMsg(`Theme: ${t.n}`);
+                };
+                list.appendChild(div);
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('navAvatar').src = currentUser.pic;
+            document.getElementById('brandAvatar').src = currentUser.pic;
+            document.getElementById('navName').innerText = currentUser.name.split(' ')[0];
+            document.getElementById('brandName').innerText = currentUser.name;
+            document.getElementById('brandBio').innerText = currentUser.bio;
+        }
+
+        function openSetup() { 
+            history.pushState({ modal: 'setup' }, '');
+            document.getElementById('setupModal').style.display = 'flex'; 
+        }
+        
+        document.getElementById('fileInput').onchange = function(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('setupPreview').src = ev.target.result;
+                currentUser.pic = ev.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        function saveUser() {
+            currentUser.name = document.getElementById('setupName').value || "Creator";
+            currentUser.bio = document.getElementById('setupBio').value || "Designer";
+            localStorage.setItem('ps_user_raw', JSON.stringify(currentUser));
+            updateUI();
+            closeModalManually();
+        }
+
+        function openEditor(url) {
+            history.pushState({ modal: 'editor' }, '');
+            document.getElementById('canvasMainImage').src = url;
+            document.getElementById('editor').classList.add('active');
+            document.getElementById('dragContainer').innerHTML = '';
+            showPanel('Text');
+        }
+
+        function showPanel(p) {
+            document.querySelectorAll('.tool-panel').forEach(el => el.classList.remove('active'));
+            document.getElementById('panel'+p).classList.add('active');
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            // Activate current btn
+            const btns = document.querySelectorAll('.tool-btn');
+            btns.forEach(btn => {
+                if(btn.innerText.includes(p.toUpperCase())) btn.classList.add('active');
+            });
+        }
+
+        function addText() {
+            const val = document.getElementById('textInput').value;
+            if(!val) return;
+            const el = document.createElement('div');
+            el.className = 'draggable';
+            el.innerText = val;
+            el.style.color = '#fff';
+            el.style.fontSize = '24px';
+            el.style.top = '15%'; el.style.left = '5%';
+            
+            el.onmousedown = (e) => { e.stopPropagation(); select(el); };
+            el.ontouchstart = (e) => { e.stopPropagation(); select(el); };
+            makeDraggable(el);
+            
+            document.getElementById('dragContainer').appendChild(el);
+            document.getElementById('textInput').value = '';
+            select(el);
+        }
+
+        function select(el) {
+            deselectAll();
+            selectedEl = el;
+            el.classList.add('selected');
+            document.getElementById('textControls').classList.remove('hidden');
+            document.getElementById('textSize').value = parseInt(el.style.fontSize);
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('.draggable').forEach(d => d.classList.remove('selected'));
+            selectedEl = null;
+            document.getElementById('textControls').classList.add('hidden');
+        }
+
+        function updateStyle() {
+            if(!selectedEl) return;
+            selectedEl.style.fontSize = document.getElementById('textSize').value + 'px';
+            selectedEl.style.color = document.getElementById('textColor').value;
+        }
+
+        function deleteText() { if(selectedEl) { selectedEl.remove(); deselectAll(); } }
+
+        function setLayout(a) {
+            const o = document.getElementById('brandOverlay');
+            o.style.flexDirection = a === 'right' ? 'row-reverse' : (a === 'center' ? 'column' : 'row');
+            o.style.textAlign = a;
+            const c = o.querySelector('.brand-content');
+            c.style.margin = a === 'center' ? '6px 0 0 0' : (a === 'right' ? '0 8px 0 0' : '0 0 0 8px');
+        }
+
+        function makeDraggable(el) {
+            let x = 0, y = 0, x1 = 0, y1 = 0;
+            el.onmousedown = dragMouseDown;
+            el.ontouchstart = dragTouchStart;
+
+            function dragMouseDown(e) {
+                x1 = e.clientX; y1 = e.clientY;
+                document.onmouseup = closeDrag;
+                document.onmousemove = elementDrag;
+            }
+
+            function dragTouchStart(e) {
+                x1 = e.touches[0].clientX; y1 = e.touches[0].clientY;
+                document.ontouchend = closeDrag;
+                document.ontouchmove = elementDragTouch;
+            }
+
+            function elementDrag(e) {
+                x = x1 - e.clientX; y = y1 - e.clientY;
+                x1 = e.clientX; y1 = e.clientY;
+                el.style.top = (el.offsetTop - y) + "px";
+                el.style.left = (el.offsetLeft - x) + "px";
+            }
+
+            function elementDragTouch(e) {
+                if(e.cancelable) e.preventDefault();
+                let t = e.touches[0];
+                x = x1 - t.clientX; y = y1 - t.clientY;
+                x1 = t.clientX; y1 = t.clientY;
+                el.style.top = (el.offsetTop - y) + "px";
+                el.style.left = (el.offsetLeft - x) + "px";
+            }
+
+            function closeDrag() {
+                document.onmouseup = null; document.onmousemove = null;
+                document.ontouchend = null; document.ontouchmove = null;
+            }
+        }
+
+        async function savePoster(scale) {
+            deselectAll();
+            showMsg("Processing...");
+            const area = document.getElementById('captureArea');
+            try {
+                const canvas = await html2canvas(area, { 
+                    scale: scale, 
+                    useCORS: true, 
+                    backgroundColor: "#000" 
+                });
+                const link = document.createElement('a');
+                link.download = `StudioPro-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+                showMsg("Done!");
+            } catch(e) { showMsg("Error Saving"); }
+        }
+    </script>
+</body>
+</html>
